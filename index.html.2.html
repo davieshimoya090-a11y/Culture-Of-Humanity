@@ -77,13 +77,15 @@
   .modal-actions .btn { flex: 1; }
   .modal-error { color: var(--red); font-size: 0.85rem; margin-top: 12px; font-weight: 600; min-height: 1.2em; }
   
+  .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: #fff; color: #3c4043; border: 1px solid #dadce0; padding: 12px; border-radius: 24px; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-bottom: 20px; }
+  .btn-google:hover { background: #f8f9fa; }
+  
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; margin-right: 8px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body data-view="welcome">
 
-<!-- WELCOME SCREEN -->
 <div id="view-welcome">
   <div id="welcome-globe"></div>
   <div class="welcome-overlay"></div>
@@ -95,7 +97,6 @@
   </div>
 </div>
 
-<!-- MAIN APP -->
 <div id="app-root" hidden>
   <header id="nav">
     <a class="brand" data-view="feed">Culture of Humanity</a>
@@ -110,11 +111,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module">
-/* ═══════════════════════════════════════════════════════
-   PRODUCTION GRADE LOGIC - NO FORM SUBMISSIONS
-   ═══════════════════════════════════════════════════════ */
-
-// Initialize Supabase
 const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -123,7 +119,6 @@ let db = { users: {}, posts: [] };
 let currentUser = null;
 let currentAuthMode = 'signin';
 
-// Security: Escape HTML
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
 function toast(msg) {
@@ -133,21 +128,31 @@ function toast(msg) {
   setTimeout(() => { el.hidden = true; }, 3000);
 }
 
-// 1. Core Auth Function (Attached directly to the button)
+// 1. Google OAuth Login Logic
+async function loginWithGoogle() {
+  const errEl = document.getElementById('auth-error');
+  try {
+    errEl.textContent = "Connecting to Google...";
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) throw error;
+  } catch (err) {
+    console.error(err);
+    errEl.textContent = "Google Login is not set up yet in Supabase.";
+  }
+}
+
+// 2. Email/Password Auth Logic
 async function submitAuth() {
   const errEl = document.getElementById('auth-error');
   const submitBtn = document.getElementById('auth-submit-btn');
-  
-  // Get values directly from inputs
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   
-  if (!email || !password) {
-    errEl.textContent = "Please fill in all fields.";
-    return;
-  }
+  if (!email || !password) { errEl.textContent = "Please fill in all fields."; return; }
 
-  // Loading state
   const originalText = submitBtn.innerHTML;
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<span class="spinner"></span>Processing...';
@@ -162,14 +167,17 @@ async function submitAuth() {
     } else {
       const username = document.getElementById('auth-username').value.trim();
       const name = document.getElementById('auth-name').value.trim();
-      
       if (!username || !name) throw new Error("Username and Display Name are required.");
 
-      // Create Auth User
       const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
-      if (authError) throw authError;
+      
+      if (authError) {
+        if (authError.message.includes('rate limit')) {
+          throw new Error("Email limit reached. Please use a different email or try Google Login.");
+        }
+        throw authError;
+      }
 
-      // Create Profile Data
       if (authData.user) {
         const { error: profileError } = await supabase.from('profiles').insert({
           id: authData.user.id,
@@ -184,29 +192,40 @@ async function submitAuth() {
           throw profileError;
         }
       }
-      toast("Account created! You are signed in.");
+      toast("Account created successfully!");
       closeModal();
     }
   } catch (err) {
     console.error(err);
-    errEl.textContent = err.message || "An error occurred.";
+    errEl.textContent = err.message || "An error occurred during authentication.";
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerHTML = originalText;
   }
 }
 
-// 2. Modal Generation
+// 3. Modal Generation
 function openAuthModal(mode) {
   currentAuthMode = mode || 'signin';
   const isSignIn = currentAuthMode === 'signin';
   
   document.getElementById('modal-root').innerHTML = `
-    <div class="modal-backdrop" onclick="if(event.target === this) document.getElementById('modal-root').innerHTML = ''">
+    <div class="modal-backdrop" onclick="if(event.target === this) window.closeModal()">
       <div class="modal" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="document.getElementById('modal-root').innerHTML = ''">×</button>
+        <button class="modal-close" onclick="window.closeModal()">×</button>
         <h2>${isSignIn ? 'Welcome back' : 'Join the atlas'}</h2>
         
+        <button class="btn-google" onclick="window.loginWithGoogle()">
+          <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        
+        <div style="display:flex; align-items:center; text-align:center; color:var(--ink-4); font-size:0.8rem; margin: 20px 0;">
+          <div style="flex:1; border-bottom:1px solid var(--line);"></div>
+          <span style="padding:0 10px;">or use email</span>
+          <div style="flex:1; border-bottom:1px solid var(--line);"></div>
+        </div>
+
         <div style="display:flex; gap:12px; margin-bottom:20px;">
           <button class="btn ${isSignIn ? 'primary' : 'ghost'}" style="flex:1;" onclick="window.switchAuth('signin')">Sign in</button>
           <button class="btn ${isSignIn ? 'ghost' : 'primary'}" style="flex:1;" onclick="window.switchAuth('signup')">Create account</button>
@@ -231,7 +250,7 @@ function openAuthModal(mode) {
         <p class="modal-error" id="auth-error"></p>
         
         <div class="modal-actions">
-          <button class="btn ghost" onclick="document.getElementById('modal-root').innerHTML = ''">Cancel</button>
+          <button class="btn ghost" onclick="window.closeModal()">Cancel</button>
           <button class="btn primary" id="auth-submit-btn" onclick="window.submitAuth()">${isSignIn ? 'Sign in' : 'Create account'}</button>
         </div>
       </div>
@@ -239,12 +258,13 @@ function openAuthModal(mode) {
   `;
 }
 
-// Attach functions to window so inline HTML onclick can access them
 window.openAuthModal = openAuthModal;
 window.submitAuth = submitAuth;
 window.switchAuth = (mode) => openAuthModal(mode);
+window.closeModal = () => document.getElementById('modal-root').innerHTML = '';
+window.loginWithGoogle = loginWithGoogle;
 
-// 3. App Boot & Routing
+// 4. App Boot & Routing
 document.getElementById('btn-enter').addEventListener('click', () => {
   document.getElementById('view-welcome').hidden = true;
   document.getElementById('app-root').hidden = false;
@@ -262,7 +282,6 @@ async function renderApp() {
   const { data: { session } } = await supabase.auth.getSession();
   currentUser = session ? session.user : null;
 
-  // Render Nav
   const authEl = document.getElementById('nav-auth');
   if (currentUser) {
     const u = db.users[currentUser.id] || { name: 'User', emoji: '🌿' };
@@ -280,16 +299,12 @@ async function renderApp() {
     `;
   }
 
-  // Render Feed
   const main = document.getElementById('main');
   if (db.posts.length === 0) {
     main.innerHTML = `
       <div class="feed-header"><h1>A living atlas of culture</h1><p>Places, songs, food, and the people who carry them</p></div>
       <div class="feed-divider">✦ ✦ ✦</div>
-      <div class="empty">
-        <h3>The feed is quiet</h3>
-        <p>Be the first to share a place, a song, or a memory.</p>
-      </div>
+      <div class="empty"><h3>The feed is quiet</h3><p>Be the first to share a place.</p></div>
     `;
   } else {
     main.innerHTML = `
