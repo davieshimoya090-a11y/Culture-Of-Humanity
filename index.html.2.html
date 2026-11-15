@@ -875,63 +875,899 @@ input,textarea,select{font-family:inherit;color:inherit}
 }
 </script>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" />
+<title>Culture of Humanity</title>
+<meta name="description" content="A living atlas of culture, one story at a time." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap" rel="stylesheet" />
+
+<style>
+/* [STYLES REMAIN EXACTLY THE SAME] */
+:root{
+  --paper:#fbf8f1;
+  --paper-2:#f2ebd9;
+  --paper-3:#e6dcc3;
+  --card:#ffffff;
+  --ink:#2c2a26;
+  --ink-2:#545049;
+  --ink-3:#8c857a;
+  --ink-4:#b8b2a6;
+  --mint:#397c5d;
+  --mint-2:#5aab81;
+  --mint-3:#224d39;
+  --mint-bg:#e3f0e9;
+  --red:#c45a4d;
+  --line:#eae2d1;
+  --line-2:#f4efe5;
+  --hand:'Caveat', cursive;
+  --round:'Quicksand', sans-serif;
+  --serif:'Fraunces', Georgia, serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+html,body{height:100%}
+body{
+  font-family:var(--round);
+  font-size:15px;
+  line-height:1.6;
+  color:var(--ink);
+  background:var(--paper);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+
+body:not([data-view="welcome"])::before{
+  content:'';
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(57,124,93,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(57,124,93,0.05) 0%, transparent 45%);
+}
+body:not([data-view="welcome"])::after{
+  content:'';
+  position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:0.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+button{font-family:inherit;background:none;border:none;cursor:pointer;color:inherit;padding:0}
+a{color:inherit;text-decoration:none;cursor:pointer}
+input,textarea,select{font-family:inherit;color:inherit}
+
+#view-welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+  overflow: hidden;
+  background: #000;
+}
+#welcome-globe {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+#welcome-globe canvas {
+  display: block;
+}
+.welcome-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 45%, transparent 75%);
+  pointer-events: none;
+}
+.welcome-content {
+  position: relative;
+  z-index: 3;
+  padding: 0 8vw;
+  max-width: 800px;
+  animation: welcomeFadeIn 1.5s cubic-bezier(0.2,0.8,0.2,1) both;
+}
+@keyframes welcomeFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.welcome-kicker {
+  font-family: var(--round);
+  font-size: 0.8rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--mint-2);
+  margin-bottom: 24px;
+  display: block;
+}
+.welcome-title {
+  font-family: var(--hand);
+  font-weight: 600;
+  font-size: clamp(4rem, 8vw, 7rem);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  margin-bottom: 24px;
+  color: #fff;
+}
+.welcome-sub {
+  font-family: var(--round);
+  font-weight: 400;
+  font-size: clamp(1.1rem, 1.4vw, 1.3rem);
+  line-height: 1.6;
+  color: rgba(235, 245, 240, 0.85);
+  max-width: 480px;
+  margin-bottom: 48px;
+}
+.welcome-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 36px;
+  border: 2px solid rgba(90,171,129,0.6);
+  border-radius: 30px;
+  background: rgba(57,124,93,0.2);
+  backdrop-filter: blur(8px);
+  font-family: var(--round);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--mint-2);
+  transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.welcome-btn:hover {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(57,124,93,0.4);
+}
+.welcome-btn svg {
+  width: 18px; height: 18px;
+  transition: transform 0.3s;
+}
+.welcome-btn:hover svg {
+  transform: translateX(6px);
+}
+
+#nav{
+  position:sticky;top:0;z-index:40;
+  background:rgba(251,248,241,0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px dashed var(--line);
+  height:72px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;gap:16px;
+}
+.brand{
+  font-family:var(--hand);
+  font-weight:700;
+  font-size:2rem;
+  color:var(--mint-3);
+  letter-spacing:0.02em;
+  display:flex;align-items:center;gap:8px;
+  transform: rotate(-2deg);
+  transition: transform 0.2s;
+}
+.brand:hover { transform: rotate(0deg) scale(1.02); }
+.brand::after{
+  content:'✦';
+  font-size:1rem;
+  color:var(--mint-2);
+  transform:translateY(-2px);
+}
+#nav-links{display:flex;gap:8px;align-items:center}
+.nav-link{
+  font-family:var(--round);
+  font-size:0.75rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  font-weight: 600;
+  color:var(--ink-3);
+  padding:10px 18px;
+  transition:all 0.2s;
+  cursor:pointer;
+  border-radius: 20px;
+}
+.nav-link:hover{color:var(--ink); background: var(--paper-2);}
+.nav-link.active{
+  color:var(--mint-3);
+  background: var(--mint-bg);
+}
+#nav-auth{display:flex;gap:8px;align-items:center}
+
+.btn{
+  font-family:var(--round);
+  font-size:0.75rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  font-weight:600;
+  padding:12px 24px;
+  border-radius: 24px;
+  background:var(--card);
+  color:var(--ink);
+  cursor:pointer;
+  transition:all 0.2s cubic-bezier(0.2,0.8,0.2,1);
+  border: 2px solid var(--line);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+  line-height:1;
+}
+.btn:hover{
+  border-color:var(--ink-3);
+  transform:translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.btn:active{transform:translateY(0);}
+.btn.primary{
+  background:var(--mint);
+  color:#fff;
+  border-color:var(--mint);
+}
+.btn.primary:hover{
+  background:var(--mint-2);
+  border-color:var(--mint-2);
+  box-shadow: 0 6px 20px rgba(57,124,93,0.3);
+}
+.btn.ghost{
+  background:transparent;
+  border-color:transparent;
+}
+.btn.ghost:hover{
+  background:var(--paper-2);
+  box-shadow: none;
+}
+.btn.small{padding:8px 16px;font-size:0.7rem}
+
+#main{padding-bottom:80px; min-height: calc(100vh - 72px);}
+.feed-header{
+  max-width:580px;
+  margin:0 auto;
+  padding:56px 20px 24px;
+  text-align:center;
+}
+.feed-header h1{
+  font-family:var(--hand);
+  font-size:3.2rem;
+  font-weight:600;
+  color:var(--ink);
+  line-height:1.1;
+  margin-bottom: 12px;
+}
+.feed-header p{
+  font-family:var(--round);
+  font-size:1rem;
+  color:var(--ink-3);
+}
+.feed-divider{
+  text-align:center;
+  color:var(--mint-2);
+  font-size:1rem;
+  letter-spacing:0.5em;
+  padding:12px 0 32px;
+  padding-left:0.5em;
+}
+
+.feed{
+  max-width:580px;
+  margin:0 auto;
+  padding:0 20px;
+}
+.post{
+  background:var(--card);
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  margin-bottom:32px;
+  transition:all 0.3s ease;
+  animation:fadePost 0.5s ease both;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(44,42,38,0.02);
+}
+@keyframes fadePost{from{opacity:0;transform:translateY(12px)}}
+.post:hover{
+  box-shadow:0 12px 36px rgba(44,42,38,0.08);
+  transform: translateY(-2px);
+}
+.post-head{
+  padding:16px 20px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.avatar{
+  width:42px;height:42px;
+  border-radius:16px;
+  display:grid;place-items:center;
+  background:var(--mint-bg);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  font-size:1.3rem;
+  flex-shrink:0;
+  cursor:pointer;
+  transition:transform 0.2s;
+  overflow:hidden;
+}
+.avatar:hover{transform:scale(1.08) rotate(3deg)}
+.avatar.large{width:120px;height:120px;font-size:3.5rem;border-radius:32px;}
+.username{
+  font-family: var(--round);
+  font-weight:700;
+  color:var(--ink);
+  font-size:1rem;
+  cursor:pointer;
+  transition:color 0.15s;
+}
+.username:hover{color:var(--mint-2)}
+.post-place{
+  font-size:0.65rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  font-weight: 600;
+  color:var(--mint);
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background: var(--mint-bg);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+.post-scene{
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+  font-size:6rem;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  background: var(--paper-2);
+}
+.post-scene::after{
+  content:'';
+  position:absolute;inset:0;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.05);
+  pointer-events:none;
+}
+.post-scene.warm{background:linear-gradient(135deg,#f6e3d5 0%,#e8c4b0 100%)}
+.post-scene.rose{background:linear-gradient(135deg,#f6d5dc 0%,#e8b0bc 100%)}
+.post-scene.sage{background:linear-gradient(135deg,#dce8d5 0%,#b0d1a8 100%)}
+.post-scene.ocean{background:linear-gradient(135deg,#d5e8f6 0%,#a8cce8 100%)}
+.post-scene.plum{background:linear-gradient(135deg,#e8d5f6 0%,#c8a8e8 100%)}
+
+.post-body{padding:20px 24px 24px}
+.post-caption{
+  font-family:var(--round);
+  font-size:1rem;
+  line-height:1.6;
+  color:var(--ink-2);
+  margin-bottom:18px;
+}
+.post-actions{
+  display:flex;gap:16px;
+  font-size:0.8rem;
+  font-weight:600;
+  color:var(--ink-3);
+}
+.action-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:inherit;
+  font:inherit;
+  padding: 8px 12px;
+  border-radius: 16px;
+  transition:all 0.2s;
+}
+.action-btn:hover{background:var(--paper-2); color:var(--ink);}
+.action-btn.liked{color:var(--red); background:rgba(196,90,77,0.1);}
+.action-btn.liked .heart{animation: heartBurst 0.4s cubic-bezier(0.2,0.9,0.3,1.4);}
+@keyframes heartBurst{ 0%{transform:scale(1)} 50%{transform:scale(1.6)} 100%{transform:scale(1)} }
+.action-btn .heart{font-size:1.2rem;line-height:1}
+
+#view-globe{
+  position:fixed;
+  inset:72px 0 0 0;
+  background:#000;
+  overflow:hidden;
+}
+#globe-canvas{position:absolute;inset:0; cursor: crosshair;}
+#globe-canvas canvas{display:block}
+#globe-pins{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.globe-pin{
+  position:absolute;
+  width:0;height:0;
+  pointer-events:none;
+  will-change:transform;
+}
+.globe-pin-dot{
+  position:absolute;
+  left:0;top:0;
+  width:16px;height:16px;
+  margin:-8px 0 0 -8px;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#fff 0%,#5aab81 40%,#397c5d 70%,#224d39 100%);
+  box-shadow:0 0 0 2px rgba(255,255,255,0.8),0 0 20px 6px rgba(90,171,129,0.6);
+  pointer-events:auto;
+  cursor:pointer;
+  transition:transform 0.3s cubic-bezier(0.2,0.9,0.3,1.4),box-shadow 0.3s;
+}
+.globe-pin-dot:hover{
+  transform:scale(1.8);
+  box-shadow:0 0 0 3px rgba(255,255,255,0.9),0 0 40px 12px rgba(90,171,129,0.9);
+}
+.globe-pin-label{
+  position:absolute;
+  left:20px;
+  top:0;
+  transform:translateY(-50%);
+  white-space:nowrap;
+  font-family: var(--hand);
+  font-size:1.2rem;
+  color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,0.8);
+  pointer-events:auto;
+  cursor:pointer;
+  opacity:0.9;
+  transition:opacity 0.2s;
+}
+.globe-pin:hover .globe-pin-label{opacity:1;}
+
+#globe-overlay{
+  position:absolute;
+  inset:24px;
+  pointer-events:none;
+  border:2px dashed rgba(90,171,129,0.2);
+  border-radius: 20px;
+  z-index:2;
+}
+
+.globe-instruction {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  padding: 12px 24px;
+  border-radius: 30px;
+  color: #fff;
+  font-family: var(--round);
+  font-size: 0.9rem;
+  pointer-events: none;
+  z-index: 10;
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: pulseGlow 2s infinite;
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(90,171,129,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(90,171,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(90,171,129,0); }
+}
+
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(44,42,38,0.6);
+  backdrop-filter: blur(4px);
+  display:grid;
+  place-items:center;
+  z-index:100;
+  padding:20px;
+  animation:fadeIn 0.2s ease;
+}
+@keyframes fadeIn{from{opacity:0}}
+.modal{
+  background:var(--paper);
+  border-radius: 24px;
+  padding:40px;
+  max-width:440px;
+  width:100%;
+  max-height:calc(100vh - 40px);
+  overflow-y:auto;
+  box-shadow:0 24px 64px rgba(0,0,0,0.2);
+  animation:modalIn 0.3s cubic-bezier(0.2,0.8,0.2,1);
+  position:relative;
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(0.96)}}
+.modal-close{
+  position:absolute;
+  top:16px;
+  right:16px;
+  font-size:1.5rem;
+  color:var(--ink-3);
+  line-height:1;
+  padding:8px;
+  border-radius: 50%;
+  transition:background 0.2s;
+}
+.modal-close:hover{background:var(--paper-2); color:var(--ink);}
+.modal h2{
+  font-family:var(--hand);
+  font-size:2.4rem;
+  font-weight:600;
+  margin-bottom:8px;
+  line-height:1.1;
+  color:var(--mint-3);
+}
+.modal .subtitle{
+  font-family:var(--round);
+  color:var(--ink-3);
+  font-size:0.95rem;
+  margin-bottom:28px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--ink-4);
+  font-size: 0.8rem;
+  margin: 20px 0;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+.divider::before { margin-right: 16px; }
+.divider::after { margin-left: 16px; }
+
+.modal label{
+  display:block;
+  font-size:0.75rem;
+  letter-spacing:0.05em;
+  font-weight:600;
+  color:var(--ink-2);
+  margin-bottom:8px;
+  margin-top:18px;
+}
+.modal input, .modal textarea, .modal select{
+  width:100%;
+  padding:14px 16px;
+  border:2px solid var(--line);
+  border-radius: 16px;
+  background:var(--card);
+  font-size:0.95rem;
+  color:var(--ink);
+  transition:border-color 0.2s;
+  font-family: var(--round);
+}
+.modal input:focus, .modal textarea:focus{
+  outline:none;
+  border-color:var(--mint-2);
+}
+.modal textarea{resize:vertical;min-height:100px;}
+.modal-actions{
+  display:flex;
+  gap:12px;
+  margin-top:32px;
+}
+.modal-actions .btn { flex: 1; justify-content: center; }
+.modal-error{ color:var(--red); font-size:0.85rem; margin-top:8px; font-weight: 500; min-height: 1.2em;}
+
+.edit-profile-btn {
+  position: absolute;
+  top: 24px; right: 24px;
+  background: var(--paper-2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem; font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.edit-profile-btn:hover { background: var(--line); }
+
+.profile-head{
+  max-width:700px;
+  margin:0 auto;
+  padding:64px 24px 32px;
+  display:flex;
+  gap:40px;
+  align-items:center;
+  position: relative;
+}
+.profile-info{flex:1;min-width:0}
+.profile-info h1{
+  font-family:var(--hand);
+  font-size:3rem;
+  font-weight:600;
+  margin-bottom:4px;
+}
+.profile-bio{
+  font-family:var(--round);
+  font-size:1.05rem;
+  color:var(--ink-2);
+  line-height:1.5;
+  margin-bottom:24px;
+}
+.profile-stats{
+  display:flex;
+  gap:32px;
+}
+.profile-stats > div{
+  font-size:0.75rem;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  font-weight: 600;
+  color:var(--ink-3);
+}
+.profile-stats strong{
+  display:block;
+  font-size:1.6rem;
+  font-weight:700;
+  color:var(--ink);
+  font-family: var(--round);
+  margin-bottom:2px;
+}
+.profile-divider{
+  max-width:700px;
+  margin:0 auto;
+  text-align:center;
+  padding:0 24px 32px;
+  color:var(--mint-2);
+  letter-spacing:1em;
+  font-size:1.2rem;
+  padding-left:calc(1em + 24px);
+}
+.post-grid{
+  max-width:900px;
+  margin:0 auto;
+  padding:0 24px 64px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+@media (max-width:600px){ .post-grid{grid-template-columns:repeat(2,1fr)} }
+.grid-item{
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+  font-size:4rem;
+  cursor:pointer;
+  border-radius: 20px;
+  transition:transform 0.3s, box-shadow 0.3s;
+  border:none;
+  overflow:hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.grid-item:hover{transform:scale(1.04);z-index:1;box-shadow:0 12px 32px rgba(0,0,0,0.12)}
+.grid-item.warm{background:linear-gradient(135deg,#f6e3d5 0%,#e8c4b0 100%)}
+.grid-item.rose{background:linear-gradient(135deg,#f6d5dc 0%,#e8b0bc 100%)}
+.grid-item.sage{background:linear-gradient(135deg,#dce8d5 0%,#b0d1a8 100%)}
+.grid-item.ocean{background:linear-gradient(135deg,#d5e8f6 0%,#a8cce8 100%)}
+.grid-item.plum{background:linear-gradient(135deg,#e8d5f6 0%,#c8a8e8 100%)}
+
+.messages-wrap{max-width:640px;margin:0 auto;padding:48px 24px}
+.messages-title{ font-family:var(--hand); font-size:3rem; margin-bottom:8px; }
+.conversation{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:20px;
+  border-radius: 20px;
+  cursor:pointer;
+  transition:background 0.2s;
+  border-bottom: 1px solid var(--line-2);
+}
+.conversation:hover{background:var(--card); box-shadow: 0 4px 12px rgba(0,0,0,0.03);}
+.conversation-name{font-weight:700; font-size: 1.1rem;}
+.conversation-preview{font-size:0.9rem; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.conversation-time{font-size:0.75rem; font-weight: 600; color:var(--ink-4);}
+
+.thread-wrap{max-width:640px; margin:0 auto; padding:32px 24px 120px;}
+.thread-messages{min-height:300px; display: flex; flex-direction: column; gap: 16px;}
+.message{max-width:75%; display: flex; flex-direction: column;}
+.message.mine{align-self: flex-end;}
+.message-bubble{
+  padding:14px 20px;
+  background:var(--paper-2);
+  border-radius: 20px 20px 20px 4px;
+  font-size:1rem;
+  line-height:1.5;
+}
+.message.mine .message-bubble{
+  background:var(--mint);
+  color:#fff;
+  border-radius: 20px 20px 4px 20px;
+}
+.message-time{ font-size:0.7rem; color:var(--ink-4); margin-top:6px; font-weight: 600;}
+.message.mine .message-time{text-align:right}
+.thread-form{
+  display:flex;
+  gap:12px;
+  margin-top:32px;
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(640px, calc(100% - 48px));
+  background: var(--paper);
+  padding: 12px;
+  border-radius: 30px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+}
+.thread-form input{
+  flex:1;
+  padding:12px 20px;
+  border-radius: 20px;
+  border: 2px solid var(--line);
+  background: var(--card);
+  font-size: 1rem;
+}
+.thread-form input:focus { outline: none; border-color: var(--mint-2); }
+
+.legal{max-width:640px;margin:0 auto;padding:64px 24px 120px;}
+.legal h1{font-family:var(--hand); font-size:3.5rem; margin-bottom:16px;}
+.legal h2{font-family:var(--round); font-size:1.4rem; margin:32px 0 12px; color: var(--mint-3);}
+.legal p, .legal li{color:var(--ink-2); line-height:1.7; margin-bottom:16px; font-size:1rem;}
+
+.back-link{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:0.85rem; font-weight:600; color:var(--ink-3);
+  margin-bottom:24px; cursor:pointer; transition:color 0.2s;
+  background: var(--paper-2); padding: 8px 16px; border-radius: 20px;
+}
+.back-link:hover{color:var(--ink); background: var(--line);}
+.empty{ text-align:center; padding:100px 24px; }
+.empty h3{ font-family:var(--hand); font-size:2.5rem; color:var(--mint-3); margin-bottom:12px;}
+.empty p{ font-size:1.1rem; color:var(--ink-3); margin-bottom:24px; }
+
+@media (max-width:640px){
+  #nav{padding:0 16px;height:auto;flex-wrap:wrap;padding-top:12px;padding-bottom:12px; gap: 12px;}
+  #nav-links{order:3;width:100%;justify-content:center;border-top:1px solid var(--line);padding-top:12px;}
+  .profile-head{flex-direction:column;text-align:center;padding:40px 20px; gap: 20px;}
+  .profile-stats{justify-content:center;}
+  .welcome-content{padding:0 6vw;}
+  .welcome-title{font-size:4rem;}
+  .welcome-overlay { background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, transparent 100%); }
+}
+</style>
+</head>
+<body data-view="welcome">
+
+<!-- Welcome Screen -->
+<div id="view-welcome">
+  <div id="welcome-globe"></div>
+  <div class="welcome-overlay"></div>
+  <div class="welcome-content">
+    <span class="welcome-kicker">Global Atlas</span>
+    <h1 class="welcome-title">The World at<br>Your Fingertips</h1>
+    <p class="welcome-sub">Explore the globe and discover the diversity of our planet. Share your culture, your stories, and your music with the world.</p>
+    <button class="welcome-btn" id="btn-enter">
+      Enter the Atlas
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app-root" hidden>
+  <header id="nav">
+    <a class="brand" data-view="feed">Culture of Humanity</a>
+    <div id="nav-links"></div>
+    <div id="nav-auth"></div>
+  </header>
+
+  <main id="main"></main>
+
+  <div id="view-globe" hidden>
+    <div id="globe-canvas"></div>
+    <div id="globe-pins"></div>
+    <div id="globe-overlay"></div>
+    <div class="globe-instruction" id="globe-instr">Click anywhere on the globe to drop a pin</div>
+  </div>
+
+  <footer id="footer" style="border-top: 2px dashed var(--line); padding: 40px; text-align: center; color: var(--ink-3);">
+    <span style="font-family: var(--hand); font-size: 1.5rem; color: var(--mint-3); display: block; margin-bottom: 12px;">Culture of Humanity</span>
+    <a data-view="privacy" style="margin: 0 12px; font-weight: 600;">Privacy Policy</a> · 
+    <a data-view="terms" style="margin: 0 12px; font-weight: 600;">Terms &amp; Conditions</a>
+  </footer>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:14px 28px;border-radius:30px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,0.2);z-index:200;" hidden></div>
+
+<!-- Supabase Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+
 <script type="module">
 /* ═══════════════════════════════════════════════════════
-   Culture of Humanity · Interactive App
+   Culture of Humanity · Supabase Integration
    ═══════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* ── Data Layer ───────────────────────────────────────── */
-const DB_KEY = 'culture_humanity_v3';
-let db = loadDB();
+// ── Initialize Supabase ─────────────────────────────────
+const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM'; 
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function loadDB() {
-  try {
-    const raw = localStorage.getItem(DB_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.users && parsed.posts) return parsed;
-    }
-  } catch (e) {}
-  return { users: {}, posts: [], follows: {}, messages: [], session: null };
-}
-function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) {} }
+/* ── App State ────────────────────────────────────────── */
+let db = { users: {}, posts: [], likes: [], comments: [], messages: [], follows: [], session: null };
+const state = { view: 'welcome', user: null, postId: null, profileUser: null, threadUser: null, authMode: 'signin' };
 
 /* ── Helpers ──────────────────────────────────────────── */
 const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const uid = () => crypto.randomUUID ? crypto.randomUUID() : 'x' + Date.now().toString(36);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 function timeAgo(t) {
-  const sec = Math.floor((Date.now() - t) / 1000);
+  const sec = Math.floor((Date.now() - new Date(t).getTime()) / 1000);
   if (sec < 60) return 'just now';
   if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
   if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
   return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
-function hashPass(s) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
-  return (h >>> 0).toString(36);
-}
 
-/* ── State ────────────────────────────────────────────── */
-const state = { view: 'welcome', user: db.session || null, postId: null, profileUser: null, threadUser: null, authMode: 'signin' };
-
-/* ── Toast ────────────────────────────────────────────── */
 let toastTimer;
 function toast(msg) {
   const el = $('#toast');
   el.textContent = msg;
   el.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3000);
 }
 
-/* ═══════════════════════════════════════════════════════
-   ROUTING
-   ═══════════════════════════════════════════════════════ */
+/* ── Fetch Data from Supabase ─────────────────────────── */
+async function loadData() {
+  const { data: profiles } = await supabase.from('profiles').select('*');
+  if (profiles) profiles.forEach(p => db.users[p.id] = p);
+
+  const { data: posts } = await supabase.from('posts').select('*, likes(post_id, user_id), comments(*)').order('created_at', { ascending: false });
+  if (posts) db.posts = posts;
+
+  const { data: follows } = await supabase.from('follows').select('*');
+  if (follows) db.follows = follows;
+
+  if (state.user) {
+    const { data: messages } = await supabase.from('messages').select('*').or(`sender_id.eq.${state.user.id},receiver_id.eq.${state.user.id}`).order('created_at', { ascending: true });
+    if (messages) db.messages = messages;
+  }
+}
+
+/* ── Auth State Listener ──────────────────────────────── */
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (session) {
+    state.user = session.user;
+  } else {
+    state.user = null;
+  }
+  await loadData();
+  render();
+});
+
+/* ── Init ─────────────────────────────────────────────── */
+async function init() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) state.user = session.user;
+  await loadData();
+  document.body.dataset.view = 'welcome';
+  initWelcome();
+  $('#btn-enter').addEventListener('click', () => go('feed'));
+}
+
+/* ── Routing & Rendering ──────────────────────────────── */
 function go(view, params = {}) {
   if (params.postId !== undefined) state.postId = params.postId;
   if (params.profileUser !== undefined) state.profileUser = params.profileUser;
@@ -968,10 +1804,7 @@ function render() {
     case 'globe': main.innerHTML = ''; break;
     default: main.innerHTML = viewFeed();
   }
-
-  if (state.view === 'globe') {
-    requestAnimationFrame(() => renderGlobePins());
-  }
+  if (state.view === 'globe') requestAnimationFrame(() => renderGlobePins());
 }
 
 function renderNav() {
@@ -979,18 +1812,16 @@ function renderNav() {
   const auth = $('#nav-auth');
   const base = [{ view: 'feed', label: 'Feed' }, { view: 'globe', label: 'Globe' }];
   if (state.user) {
-    base.push({ view: 'messages', label: 'Messages', badge: unreadCount() });
+    base.push({ view: 'messages', label: 'Messages' });
     base.push({ view: 'profile', label: 'Profile' });
   }
 
   links.innerHTML = base.map((l) => `
-    <a class="nav-link ${state.view === l.view ? 'active' : ''}" data-view="${l.view}">
-      ${l.label}${l.badge ? `<span style="background:var(--red);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:10px;margin-left:4px;">${l.badge}</span>` : ''}
-    </a>
+    <a class="nav-link ${state.view === l.view ? 'active' : ''}" data-view="${l.view}">${l.label}</a>
   `).join('');
 
   if (state.user) {
-    const u = db.users[state.user];
+    const u = db.users[state.user.id] || { name: 'User', emoji: '🌿' };
     auth.innerHTML = `
       <button class="btn ghost small" data-view="profile" style="gap:8px; padding:6px 12px; border-radius:30px;">
         <span class="avatar" style="width:28px;height:28px;font-size:1rem;border-radius:8px;border:none;">${esc(u.emoji)}</span>
@@ -1006,43 +1837,37 @@ function renderNav() {
   }
 }
 
-function unreadCount() {
-  if (!state.user) return 0;
-  return db.messages.filter((m) => m.to === state.user && !m.read).length;
-}
-
 /* ═══════════════════════════════════════════════════════
    VIEWS
    ═══════════════════════════════════════════════════════ */
 function viewFeed() {
-  const sorted = [...db.posts].sort((a, b) => b.time - a.time);
-  const feedHTML = sorted.length ? `<div class="feed">${sorted.map(postCard).join('')}</div>` : `
-    <div class="empty">
-      <h3>The feed is quiet</h3>
-      <p>Be the first to share a place, a song, or a memory.</p>
-      ${state.user ? '<button class="btn primary" data-action="compose">Write the first post</button>' : '<button class="btn primary" data-action="open-auth">Sign in to post</button>'}
-    </div>`;
+  if (!db.posts.length) {
+    return `
+      <div class="feed-header"><h1>A living atlas of culture</h1><p>Places, songs, food, and the people who carry them</p></div>
+      <div class="feed-divider">✦ ✦ ✦</div>
+      <div class="empty">
+        <h3>The feed is quiet</h3>
+        <p>Be the first to share a place, a song, or a memory.</p>
+        ${state.user ? '<button class="btn primary" data-action="compose">Write the first post</button>' : '<button class="btn primary" data-action="open-auth">Sign in to post</button>'}
+      </div>`;
+  }
   return `
-    <div class="feed-header">
-      <h1>A living atlas of culture</h1>
-      <p>Places, songs, food, and the people who carry them</p>
-    </div>
+    <div class="feed-header"><h1>A living atlas of culture</h1><p>Places, songs, food, and the people who carry them</p></div>
     <div class="feed-divider">✦ ✦ ✦</div>
-    ${feedHTML}
+    <div class="feed">${db.posts.map(postCard).join('')}</div>
   `;
 }
 
 function postCard(post) {
-  const author = db.users[post.author];
-  if (!author) return '';
-  const liked = state.user && post.likes.includes(state.user);
+  const author = db.users[post.author_id] || { name: 'Unknown', emoji: '?' };
+  const liked = state.user && post.likes.some(l => l.user_id === state.user.id);
   return `
-    <article class="post" data-post="${esc(post.id)}">
+    <article class="post">
       <header class="post-head">
-        <div class="avatar" data-profile="${esc(post.author)}">${esc(author.emoji)}</div>
+        <div class="avatar" data-profile="${esc(post.author_id)}">${esc(author.emoji)}</div>
         <div>
-          <div class="username" data-profile="${esc(post.author)}">${esc(author.name)}</div>
-          <div style="font-size:0.75rem;color:var(--ink-3);font-weight:500;">${timeAgo(post.time)}</div>
+          <div class="username" data-profile="${esc(post.author_id)}">${esc(author.name)}</div>
+          <div style="font-size:0.75rem;color:var(--ink-3);font-weight:500;">${timeAgo(post.created_at)}</div>
         </div>
         <div class="post-place">${esc(post.place)}</div>
       </header>
@@ -1065,19 +1890,18 @@ function postCard(post) {
 function viewPost() {
   const post = db.posts.find((p) => p.id === state.postId);
   if (!post) return `<div class="empty"><h3>Post not found</h3></div>`;
-  const author = db.users[post.author];
-  const liked = state.user && post.likes.includes(state.user);
-  const comments = [...post.comments].sort((a, b) => a.time - b.time);
+  const author = db.users[post.author_id] || { name: 'Unknown', emoji: '?' };
+  const liked = state.user && post.likes.some(l => l.user_id === state.user.id);
 
   return `
     <div class="post-detail" style="max-width:640px;margin:0 auto;padding:40px 24px;">
       <a class="back-link" data-view="feed">← Back to feed</a>
       <article class="post">
         <header class="post-head">
-          <div class="avatar" data-profile="${esc(post.author)}">${esc(author.emoji)}</div>
+          <div class="avatar" data-profile="${esc(post.author_id)}">${esc(author.emoji)}</div>
           <div>
-            <div class="username" data-profile="${esc(post.author)}">${esc(author.name)}</div>
-            <div style="font-size:0.75rem;color:var(--ink-3);font-weight:500;">${timeAgo(post.time)}</div>
+            <div class="username" data-profile="${esc(post.author_id)}">${esc(author.name)}</div>
+            <div style="font-size:0.75rem;color:var(--ink-3);font-weight:500;">${timeAgo(post.created_at)}</div>
           </div>
           <div class="post-place">${esc(post.place)}</div>
         </header>
@@ -1091,16 +1915,18 @@ function viewPost() {
           </div>
         </div>
         <div style="padding: 0 24px 24px;">
-          <h3 style="font-family:var(--round);font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--ink-2);">Comments (${comments.length})</h3>
-          ${comments.map((c) => `
+          <h3 style="font-family:var(--round);font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--ink-2);">Comments (${post.comments.length})</h3>
+          ${post.comments.map((c) => {
+            const ca = db.users[c.author_id] || { name: 'Unknown', emoji: '?' };
+            return `
             <div style="display:flex; gap:12px; margin-bottom:16px;">
-              <div class="avatar" style="width:32px;height:32px;font-size:1rem;border-radius:10px;" data-profile="${esc(c.author)}">${esc(db.users[c.author]?.emoji || '?')}</div>
+              <div class="avatar" style="width:32px;height:32px;font-size:1rem;border-radius:10px;">${esc(ca.emoji)}</div>
               <div style="background:var(--paper);padding:12px 16px;border-radius:16px;flex:1;">
-                <div style="font-weight:700;font-size:0.85rem;margin-bottom:4px;">${esc(db.users[c.author]?.name || c.author)} <span style="font-weight:500;color:var(--ink-4);margin-left:8px;font-size:0.75rem;">${timeAgo(c.time)}</span></div>
+                <div style="font-weight:700;font-size:0.85rem;margin-bottom:4px;">${esc(ca.name)} <span style="font-weight:500;color:var(--ink-4);margin-left:8px;font-size:0.75rem;">${timeAgo(c.created_at)}</span></div>
                 <div style="font-size:0.95rem;color:var(--ink-2);">${esc(c.text)}</div>
               </div>
-            </div>
-          `).join('')}
+            </div>`;
+          }).join('')}
           ${state.user
             ? `<form class="comment-form" data-comment-form="${esc(post.id)}" style="display:flex;gap:12px;margin-top:24px;">
                  <input type="text" placeholder="Add a comment…" maxlength="280" required style="flex:1;padding:12px 16px;border-radius:20px;border:2px solid var(--line);background:var(--paper);font-size:0.95rem;" />
@@ -1114,24 +1940,24 @@ function viewPost() {
 }
 
 function viewProfile() {
-  const username = state.profileUser || state.user;
-  if (!username || !db.users[username]) return `<div class="empty"><h3>Not found</h3></div>`;
-  const user = db.users[username];
-  const isMe = state.user === username;
-  const isFollowing = state.user && db.follows[state.user]?.includes(username);
-  const posts = db.posts.filter((p) => p.author === username).sort((a, b) => b.time - a.time);
-  const followers = Object.keys(db.follows).filter((u) => db.follows[u]?.includes(username)).length;
-  const following = db.follows[username]?.length || 0;
+  const userId = state.profileUser || (state.user ? state.user.id : null);
+  if (!userId || !db.users[userId]) return `<div class="empty"><h3>Not found</h3></div>`;
+  const user = db.users[userId];
+  const isMe = state.user && state.user.id === userId;
+  const posts = db.posts.filter((p) => p.author_id === userId);
+  const followers = db.follows.filter(f => f.following_id === userId).length;
+  const following = db.follows.filter(f => f.follower_id === userId).length;
+  const isFollowing = state.user && db.follows.some(f => f.follower_id === state.user.id && f.following_id === userId);
 
   const actionHTML = isMe
     ? `<button class="btn primary" data-action="compose">Write a post</button>`
     : state.user
-      ? `<button class="btn ${isFollowing ? 'ghost' : 'primary'}" data-action="follow" data-user="${esc(username)}">${isFollowing ? 'Following' : 'Follow'}</button>
-         <button class="btn" data-action="message-user" data-user="${esc(username)}">Message</button>`
+      ? `<button class="btn ${isFollowing ? 'ghost' : 'primary'}" data-action="follow" data-user="${esc(userId)}">${isFollowing ? 'Following' : 'Follow'}</button>
+         <button class="btn" data-action="message-user" data-user="${esc(userId)}">Message</button>`
       : `<button class="btn primary" data-action="open-auth">Sign in to follow</button>`;
 
   const gridHTML = posts.length ? `<div class="post-grid">${posts.map((p) => `
-         <button class="grid-item ${esc(p.theme)}" data-open-post="${esc(p.id)}" title="${esc(p.place)}">
+         <button class="grid-item ${esc(p.theme)}" data-open-post="${esc(p.id)}">
            ${esc(p.emoji)}
          </button>`).join('')}</div>` : `<div class="empty"><h3>No posts yet</h3></div>`;
 
@@ -1157,53 +1983,31 @@ function viewProfile() {
 
 function viewMessages() {
   if (!state.user) return `<div class="empty"><h3>Sign in to see messages</h3></div>`;
-  const me = state.user;
   const threads = {};
-
   db.messages.forEach((m) => {
-    if (m.from === me || m.to === me) {
-      const other = m.from === me ? m.to : m.from;
-      if (!threads[other] || m.time > threads[other].time) threads[other] = m;
-    }
+    const other = m.sender_id === state.user.id ? m.receiver_id : m.sender_id;
+    if (!threads[other] || new Date(m.created_at) > new Date(threads[other].created_at)) threads[other] = m;
   });
-
-  const threadEntries = Object.entries(threads).sort((a, b) => b[1].time - a[1].time);
-  const suggested = Object.keys(db.users).filter((u) => u !== me && !threads[u]).slice(0, 5);
-
+  
+  const entries = Object.entries(threads).sort((a, b) => new Date(b[1].created_at) - new Date(a[1].created_at));
+  
   return `
     <div class="messages-wrap">
       <h1 class="messages-title">Messages</h1>
       <p style="color:var(--ink-3);margin-bottom:32px;">Quiet correspondence between travelers.</p>
-      ${threadEntries.length ? threadEntries.map(([other, last]) => {
-        const user = db.users[other];
-        if (!user) return '';
+      ${entries.length ? entries.map(([other, last]) => {
+        const user = db.users[other] || { name: 'Unknown', emoji: '?' };
         return `
           <div class="conversation" data-thread="${esc(other)}">
             <div class="avatar" style="width:48px;height:48px;border-radius:16px;font-size:1.5rem;">${esc(user.emoji)}</div>
             <div class="conversation-body" style="flex:1;">
               <div class="conversation-name">${esc(user.name)}</div>
-              <div class="conversation-preview">${last.from === me ? 'You: ' : ''}${esc(last.text)}</div>
+              <div class="conversation-preview">${last.sender_id === state.user.id ? 'You: ' : ''}${esc(last.text)}</div>
             </div>
-            <div class="conversation-time">${timeAgo(last.time)}</div>
+            <div class="conversation-time">${timeAgo(last.created_at)}</div>
           </div>
         `;
       }).join('') : `<p style="color:var(--ink-3);">No messages yet.</p>`}
-
-      ${suggested.length ? `
-        <h3 style="font-family:var(--hand);font-size:2rem;margin:40px 0 16px;color:var(--mint-3);">Start a conversation</h3>
-        ${suggested.map((u) => {
-          const user = db.users[u];
-          return `
-            <div class="conversation" data-thread="${esc(u)}">
-              <div class="avatar" style="width:48px;height:48px;border-radius:16px;font-size:1.5rem;">${esc(user.emoji)}</div>
-              <div class="conversation-body">
-                <div class="conversation-name">${esc(user.name)}</div>
-                <div class="conversation-preview">@${esc(u)}</div>
-              </div>
-            </div>
-          `;
-        }).join('')}
-      ` : ''}
     </div>
   `;
 }
@@ -1214,15 +2018,10 @@ function viewThread() {
   if (!other || !db.users[other]) return `<div class="empty"><h3>Not found</h3></div>`;
   const user = db.users[other];
 
-  const msgs = db.messages
-    .filter((m) => (m.from === state.user && m.to === other) || (m.from === other && m.to === state.user))
-    .sort((a, b) => a.time - b.time);
-
-  let changed = false;
-  db.messages.forEach((m) => {
-    if (m.from === other && m.to === state.user && !m.read) { m.read = true; changed = true; }
-  });
-  if (changed) saveDB();
+  const msgs = db.messages.filter((m) => 
+    (m.sender_id === state.user.id && m.receiver_id === other) || 
+    (m.sender_id === other && m.receiver_id === state.user.id)
+  );
 
   return `
     <div class="thread-wrap">
@@ -1231,16 +2030,15 @@ function viewThread() {
         <div class="avatar" style="width:56px;height:56px;border-radius:20px;font-size:1.8rem;" data-profile="${esc(other)}">${esc(user.emoji)}</div>
         <div>
           <div class="username" style="font-size:1.2rem;" data-profile="${esc(other)}">${esc(user.name)}</div>
-          <div style="font-size:0.8rem;color:var(--ink-3);">@${esc(other)}</div>
         </div>
       </div>
       <div class="thread-messages">
         ${msgs.length === 0
           ? `<p style="text-align:center;color:var(--ink-3);margin-top:40px;">Say hello. This is the start of something.</p>`
           : msgs.map((m) => `
-              <div class="message ${m.from === state.user ? 'mine' : ''}">
+              <div class="message ${m.sender_id === state.user.id ? 'mine' : ''}">
                 <div class="message-bubble">${esc(m.text)}</div>
-                <div class="message-time">${timeAgo(m.time)}</div>
+                <div class="message-time">${timeAgo(m.created_at)}</div>
               </div>
             `).join('')}
       </div>
@@ -1252,79 +2050,170 @@ function viewThread() {
   `;
 }
 
-function viewPrivacy() { return `<div class="legal"><a class="back-link" data-view="feed">← Back</a><h1>Privacy Policy</h1><p>Culture of Humanity is a small, quiet place. Everything you create lives in your own browser, on your own device. There is no server, no analytics, no tracking pixels. If you clear your browser data, your account and posts are gone. Treat Culture of Humanity like a paper notebook that lives on your shelf.</p></div>`; }
-function viewTerms() { return `<div class="legal"><a class="back-link" data-view="feed">← Back</a><h1>Terms &amp; Conditions</h1><p>By using Culture of Humanity you agree to be kind, respectful of other cultures, and not to post hateful or illegal content. Everything you post is yours, and you grant the app permission to display it locally. We do not promise it will always work, but we will try to fix it if it breaks.</p></div>`; }
+function viewPrivacy() { return `<div class="legal"><a class="back-link" data-view="feed">← Back</a><h1>Privacy Policy</h1><p>Culture of Humanity stores your data securely using Supabase. Your email and password are encrypted. Posts and messages are visible to other users of this application.</p></div>`; }
+function viewTerms() { return `<div class="legal"><a class="back-link" data-view="feed">← Back</a><h1>Terms &amp; Conditions</h1><p>By using Culture of Humanity you agree to be kind, respectful of other cultures, and not to post hateful or illegal content.</p></div>`; }
+
+/* ═══════════════════════════════════════════════════════
+   ACTIONS
+   ═══════════════════════════════════════════════════════ */
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const errEl = e.target.querySelector('[data-auth-error]');
+  const email = fd.get('email');
+  const password = fd.get('password');
+  
+  if (state.authMode === 'signin') {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { errEl.textContent = error.message; return; }
+  } else {
+    const username = fd.get('username');
+    const name = fd.get('name');
+    const emoji = fd.get('emoji') || '🌿';
+    const bio = fd.get('bio') || 'New to the atlas.';
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) { errEl.textContent = error.message; return; }
+
+    if (data.user) {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        username: username,
+        name: name,
+        emoji: emoji,
+        bio: bio
+      });
+    }
+    toast('Account created! You can now sign in.');
+  }
+  closeModal();
+}
+
+async function handleComposeSubmit(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  await supabase.from('posts').insert({
+    author_id: state.user.id,
+    caption: fd.get('caption'),
+    place: fd.get('place'),
+    emoji: fd.get('emoji'),
+    theme: fd.get('theme')
+  });
+  closeModal();
+  await loadData();
+  render();
+  toast('Posted to the atlas');
+}
+
+async function toggleLike(postId) {
+  if (!state.user) { openAuthModal('signin'); return; }
+  const post = db.posts.find(p => p.id === postId);
+  const existing = post.likes.find(l => l.user_id === state.user.id);
+  
+  if (existing) {
+    await supabase.from('likes').delete().match({ post_id: postId, user_id: state.user.id });
+  } else {
+    await supabase.from('likes').insert({ post_id: postId, user_id: state.user.id });
+  }
+  await loadData();
+  render();
+}
+
+async function addComment(postId, text) {
+  if (!state.user || !text.trim()) return;
+  await supabase.from('comments').insert({
+    post_id: postId,
+    author_id: state.user.id,
+    text: text.trim()
+  });
+  await loadData();
+  render();
+}
+
+async function followUser(userId) {
+  if (!state.user) { openAuthModal('signin'); return; }
+  const exists = db.follows.find(f => f.follower_id === state.user.id && f.following_id === userId);
+  
+  if (exists) {
+    await supabase.from('follows').delete().match({ follower_id: state.user.id, following_id: userId });
+  } else {
+    await supabase.from('follows').insert({ follower_id: state.user.id, following_id: userId });
+  }
+  await loadData();
+  render();
+}
+
+async function sendMessage(to, text) {
+  if (!state.user || !text.trim()) return;
+  await supabase.from('messages').insert({
+    sender_id: state.user.id,
+    receiver_id: to,
+    text: text.trim()
+  });
+  await loadData();
+  render();
+}
+
+async function signOut() {
+  await supabase.auth.signOut();
+  state.user = null;
+  go('feed');
+  toast('Signed out.');
+}
 
 /* ═══════════════════════════════════════════════════════
    MODALS
    ═══════════════════════════════════════════════════════ */
 function openAuthModal(mode) {
   state.authMode = mode || 'signin';
-  renderAuthModal();
-}
-
-function renderAuthModal() {
   const isSignIn = state.authMode === 'signin';
   $('#modal-root').innerHTML = `
     <div class="modal-backdrop" data-close-modal="true">
       <div class="modal" data-stop="true">
         <button class="modal-close" data-close-modal="true">×</button>
         <h2>${isSignIn ? 'Welcome back' : 'Join the atlas'}</h2>
-        <p class="subtitle">${isSignIn ? 'Sign in to write, like, and message' : 'A name, a password, and a place to begin'}</p>
-        
-        <!-- Google Login Simulation -->
-        <button class="btn-google" data-action="google-login">
-          <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          Continue with Google
-        </button>
-        
-        <div class="divider">or use email</div>
-
-        <div style="display:flex; gap:12px; margin-bottom:20px;">
+        <div style="display:flex; gap:12px; margin-bottom:20px; margin-top:20px;">
           <button class="btn ${isSignIn ? 'primary' : 'ghost'}" style="flex:1;" data-auth-tab="signin">Sign in</button>
           <button class="btn ${isSignIn ? 'ghost' : 'primary'}" style="flex:1;" data-auth-tab="signup">Create account</button>
         </div>
-
-        <form data-auth-form novalidate>
-          <label>Username</label>
-          <input name="username" autocomplete="username" maxlength="24" required placeholder="letters and numbers only" />
+        <form data-auth-form>
           ${!isSignIn ? `
+            <label>Username (letters/numbers only)</label>
+            <input name="username" maxlength="24" required placeholder="e.g. wanderer" />
             <label>Display name</label>
-            <input name="name" maxlength="40" required placeholder="How your name appears" />
+            <input name="name" maxlength="40" required placeholder="e.g. Alex Smith" />
             <label>Profile emoji</label>
             <input name="emoji" maxlength="4" placeholder="🌿" value="🌿" />
             <label>Short bio</label>
             <textarea name="bio" maxlength="160" rows="2" placeholder="One line about the places you carry"></textarea>
           ` : ''}
+          <label>Email</label>
+          <input name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
           <label>Password</label>
-          <input name="password" type="password" autocomplete="current-password" minlength="4" required />
+          <input name="password" type="password" autocomplete="current-password" minlength="6" required />
           <p class="modal-error" data-auth-error></p>
           <div class="modal-actions">
             <button type="button" class="btn ghost" data-close-modal="true">Cancel</button>
             <button type="submit" class="btn primary">${isSignIn ? 'Sign in' : 'Create account'}</button>
           </div>
         </form>
-        <p style="text-align:center; font-size:0.8rem; color:var(--ink-4); margin-top:20px;">
-          Accounts are stored locally. If you forgot your password, please create a new account.
-        </p>
       </div>
     </div>
   `;
 }
 
-function openComposeModal(prefillPlace = '') {
+function openComposeModal() {
   if (!state.user) { openAuthModal('signin'); return; }
   $('#modal-root').innerHTML = `
     <div class="modal-backdrop" data-close-modal="true">
       <div class="modal" data-stop="true">
         <button class="modal-close" data-close-modal="true">×</button>
         <h2>Write a post</h2>
-        <p class="subtitle">A place, a memory, a song that lives there</p>
         <form data-compose-form>
           <label>Caption</label>
           <textarea name="caption" maxlength="600" rows="4" required placeholder="What did you see, hear, taste?"></textarea>
           <label>Place</label>
-          <input name="place" maxlength="80" required value="${esc(prefillPlace)}" placeholder="City, Country" />
+          <input name="place" maxlength="80" required placeholder="City, Country" />
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
               <label>Emoji</label>
@@ -1351,646 +2240,218 @@ function openComposeModal(prefillPlace = '') {
   `;
 }
 
-function openEditProfileModal() {
-  if (!state.user) return;
-  const u = db.users[state.user];
-  $('#modal-root').innerHTML = `
-    <div class="modal-backdrop" data-close-modal="true">
-      <div class="modal" data-stop="true">
-        <button class="modal-close" data-close-modal="true">×</button>
-        <h2>Edit Profile</h2>
-        <form data-edit-profile-form>
-          <label>Display name</label>
-          <input name="name" maxlength="40" required value="${esc(u.name)}" />
-          <label>Profile emoji</label>
-          <input name="emoji" maxlength="4" required value="${esc(u.emoji)}" />
-          <label>Short bio</label>
-          <textarea name="bio" maxlength="160" rows="3" required>${esc(u.bio)}</textarea>
-          <div class="modal-actions">
-            <button type="button" class="btn ghost" data-close-modal="true">Cancel</button>
-            <button type="submit" class="btn primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `;
-}
-
 function closeModal() { $('#modal-root').innerHTML = ''; }
-
-/* ═══════════════════════════════════════════════════════
-   ACTIONS
-   ═══════════════════════════════════════════════════════ */
-function toggleLike(postId) {
-  if (!state.user) { openAuthModal('signin'); return; }
-  const post = db.posts.find((p) => p.id === postId);
-  if (!post) return;
-  const i = post.likes.indexOf(state.user);
-  if (i >= 0) post.likes.splice(i, 1); else post.likes.push(state.user);
-  saveDB(); render();
-}
-function addComment(postId, text) {
-  if (!state.user) return;
-  const post = db.posts.find((p) => p.id === postId);
-  if (!post || !text.trim()) return;
-  post.comments.push({ id: uid(), author: state.user, text: text.trim().slice(0, 280), time: Date.now() });
-  saveDB(); render();
-}
-function followUser(username) {
-  if (!state.user) { openAuthModal('signin'); return; }
-  if (username === state.user) return;
-  if (!db.follows[state.user]) db.follows[state.user] = [];
-  const arr = db.follows[state.user];
-  const i = arr.indexOf(username);
-  if (i >= 0) arr.splice(i, 1); else arr.push(username);
-  saveDB(); render();
-}
-function sendMessage(to, text) {
-  if (!state.user || !text.trim()) return;
-  db.messages.push({ id: uid(), from: state.user, to, text: text.trim().slice(0, 1000), time: Date.now() });
-  saveDB(); render();
-}
-function createPost(data) {
-  if (!state.user) return;
-  db.posts.push({
-    id: uid(), author: state.user, place: data.place.trim(), emoji: data.emoji || '✦',
-    theme: data.theme || 'warm', caption: data.caption.trim(), likes: [], comments: [], time: Date.now()
-  });
-  saveDB(); closeModal(); render(); toast('Posted to the atlas');
-}
-function signIn(username, password) {
-  const user = db.users[username.toLowerCase()];
-  if (!user) return 'No account with that name. Please create an account first.';
-  if (user.pass !== hashPass(password)) return 'Incorrect password. Please try again.';
-  state.user = username.toLowerCase(); db.session = state.user;
-  saveDB(); closeModal(); render(); toast('Welcome back, ' + user.name);
-  return null;
-}
-function signUp(username, name, password, bio, emoji) {
-  const key = username.toLowerCase();
-  if (!key) return 'Please enter a username.';
-  if (!/^[a-z0-9_]+$/i.test(key)) return 'Username can only contain letters, numbers, and underscores.';
-  if (db.users[key]) return 'That username is already taken.';
-  if (password.length < 4) return 'Password must be at least 4 characters.';
-  if (!name.trim()) return 'Please add a display name.';
-  
-  db.users[key] = { name: name.trim(), pass: hashPass(password), bio: bio.trim() || 'New to the atlas.', emoji: emoji || '🌿', joined: Date.now() };
-  db.follows[key] = [];
-  state.user = key; db.session = key;
-  saveDB(); closeModal(); render(); toast('Welcome, ' + name.trim());
-  return null;
-}
-function handleGoogleLogin() {
-  const mockUser = 'wanderer_' + Math.floor(Math.random() * 1000);
-  const mockName = 'Wanderer';
-  if (!db.users[mockUser]) {
-    db.users[mockUser] = { name: mockName, pass: hashPass('google'), bio: 'Exploring the world via Google.', emoji: '🌍', joined: Date.now() };
-    db.follows[mockUser] = [];
-  }
-  state.user = mockUser; db.session = mockUser;
-  saveDB(); closeModal(); render(); toast('Signed in with Google (Demo)');
-}
-function signOut() {
-  state.user = null; db.session = null; saveDB(); go('feed'); toast('Signed out.');
-}
 
 /* ═══════════════════════════════════════════════════════
    EVENTS
    ═══════════════════════════════════════════════════════ */
 document.addEventListener('click', (e) => {
-  const stop = e.target.closest('[data-stop]');
-  const close = e.target.closest('[data-close-modal]');
-  if (close && (!stop || e.target === close)) { closeModal(); return; }
+  if (e.target.closest('[data-close-modal]')) { closeModal(); return; }
 
   const viewTarget = e.target.closest('[data-view]');
   if (viewTarget) {
     e.preventDefault();
     const v = viewTarget.dataset.view;
-    if (v === 'profile') go('profile', { profileUser: state.user });
+    if (v === 'profile') go('profile', { profileUser: state.user ? state.user.id : null });
     else go(v);
     return;
   }
   const profileTarget = e.target.closest('[data-profile]');
-  if (profileTarget) { e.preventDefault(); go('profile', { profileUser: profileTarget.dataset.profile }); return; }
+  if (profileTarget) { go('profile', { profileUser: profileTarget.dataset.profile }); return; }
   const openPost = e.target.closest('[data-open-post]');
-  if (openPost) { e.preventDefault(); go('post', { postId: openPost.dataset.openPost }); return; }
+  if (openPost) { go('post', { postId: openPost.dataset.openPost }); return; }
   const threadTarget = e.target.closest('[data-thread]');
-  if (threadTarget) { e.preventDefault(); go('thread', { threadUser: threadTarget.dataset.thread }); return; }
+  if (threadTarget) { go('thread', { threadUser: threadTarget.dataset.thread }); return; }
   const authTab = e.target.closest('[data-auth-tab]');
-  if (authTab) { state.authMode = authTab.dataset.authTab; renderAuthModal(); return; }
+  if (authTab) { state.authMode = authTab.dataset.authTab; openAuthModal(state.authMode); return; }
 
   const actionTarget = e.target.closest('[data-action]');
   if (actionTarget) {
-    e.preventDefault();
     const action = actionTarget.dataset.action;
-    switch (action) {
-      case 'signout': signOut(); break;
-      case 'open-auth': openAuthModal('signin'); break;
-      case 'google-login': handleGoogleLogin(); break;
-      case 'compose': if (!state.user) openAuthModal('signin'); else openComposeModal(); break;
-      case 'edit-profile': openEditProfileModal(); break;
-      case 'like': toggleLike(actionTarget.dataset.id); break;
-      case 'follow': followUser(actionTarget.dataset.user); break;
-      case 'message-user': if (!state.user) openAuthModal('signin'); else go('thread', { threadUser: actionTarget.dataset.user }); break;
-      case 'open-on-globe': {
-        const post = db.posts.find((p) => p.id === actionTarget.dataset.id);
-        go('globe');
-        setTimeout(() => { if (post) { const coords = placeToCoords(post.place); flyToPlace(coords.lat, coords.lng); } }, 300);
-        break;
-      }
-    }
+    if (action === 'signout') signOut();
+    if (action === 'open-auth') openAuthModal('signin');
+    if (action === 'compose') openComposeModal();
+    if (action === 'like') toggleLike(actionTarget.dataset.id);
+    if (action === 'follow') followUser(actionTarget.dataset.user);
+    if (action === 'message-user') go('thread', { threadUser: actionTarget.dataset.user });
     return;
   }
 });
 
 document.addEventListener('submit', (e) => {
-  const compose = e.target.closest('[data-compose-form]');
-  if (compose) {
-    e.preventDefault();
-    const fd = new FormData(compose);
-    createPost({ caption: fd.get('caption'), place: fd.get('place'), emoji: fd.get('emoji'), theme: fd.get('theme') });
-    return;
-  }
+  if (e.target.closest('[data-auth-form]')) return handleAuthSubmit(e);
+  if (e.target.closest('[data-compose-form]')) return handleComposeSubmit(e);
   const comment = e.target.closest('[data-comment-form]');
   if (comment) {
     e.preventDefault();
     const input = comment.querySelector('input');
     addComment(comment.dataset.commentForm, input.value);
     input.value = '';
-    return;
   }
-  const threadForm = e.target.closest('[data-thread-form]');
-  if (threadForm) {
+  const thread = e.target.closest('[data-thread-form]');
+  if (thread) {
     e.preventDefault();
-    const input = threadForm.querySelector('input');
-    sendMessage(threadForm.dataset.threadForm, input.value);
+    const input = thread.querySelector('input');
+    sendMessage(thread.dataset.threadForm, input.value);
     input.value = '';
-    return;
-  }
-  const authForm = e.target.closest('[data-auth-form]');
-  if (authForm) {
-    e.preventDefault();
-    const fd = new FormData(authForm);
-    const errEl = authForm.querySelector('[data-auth-error]');
-    let err;
-    if (state.authMode === 'signin') {
-      err = signIn(fd.get('username') || '', fd.get('password') || '');
-    } else {
-      err = signUp(fd.get('username') || '', fd.get('name') || '', fd.get('password') || '', fd.get('bio') || '', fd.get('emoji') || '🌿');
-    }
-    if (err && errEl) errEl.textContent = err;
-    return;
-  }
-  const editProfile = e.target.closest('[data-edit-profile-form]');
-  if (editProfile) {
-    e.preventDefault();
-    const fd = new FormData(editProfile);
-    const u = db.users[state.user];
-    u.name = fd.get('name').trim();
-    u.emoji = fd.get('emoji').trim();
-    u.bio = fd.get('bio').trim();
-    saveDB(); closeModal(); render(); toast('Profile updated');
-    return;
   }
 });
 
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
 /* ═══════════════════════════════════════════════════════
-   INTERACTIVE GLOBE (Three.js) - NO BLUE GLOW
+   GLOBE (Three.js)
    ═══════════════════════════════════════════════════════ */
 let globeCtx = null;
 const GLOBE_RADIUS = 100;
 const SUN_DIR = new THREE.Vector3(-5, 3, 5).normalize();
-
 const TEX = {
-  day:    'https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/planets/earth_day_4096.jpg',
-  night:  'https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/planets/earth_night_4096.jpg',
-  spec:   'https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/planets/earth_specular_2048.jpg',
+  day: 'https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/planets/earth_day_4096.jpg',
+  night: 'https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/planets/earth_night_4096.jpg',
+  spec: 'https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/planets/earth_specular_2048.jpg',
   normal: 'https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/planets/earth_normal_2048.jpg',
   clouds: 'https://raw.githubusercontent.com/mrdoob/three.js/r150/examples/textures/planets/earth_clouds_2048.png'
 };
 
 const earthVertex = `
-  varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
+  varying vec2 vUv; varying vec3 vNormal; varying vec3 vViewPosition;
   void main() {
-    vUv = uv;
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    vNormal = normalize(normalMatrix * normal);
-    vViewPosition = -mvPosition.xyz;
+    vUv = uv; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    vNormal = normalize(normalMatrix * normal); vViewPosition = -mvPosition.xyz;
     gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
+  }`;
 const earthFragment = `
-  uniform sampler2D dayTexture;
-  uniform sampler2D nightTexture;
-  uniform sampler2D specularMap;
-  uniform sampler2D normalMap;
-  uniform vec3 sunDirection;
-  varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
-
+  uniform sampler2D dayTexture; uniform sampler2D nightTexture; uniform sampler2D specularMap; uniform sampler2D normalMap; uniform vec3 sunDirection;
+  varying vec2 vUv; varying vec3 vNormal; varying vec3 vViewPosition;
   mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {
-    vec3 dp1 = dFdx(p);
-    vec3 dp2 = dFdy(p);
-    vec2 duv1 = dFdx(uv);
-    vec2 duv2 = dFdy(uv);
-    vec3 dp2perp = cross(dp2, N);
-    vec3 dp1perp = cross(N, dp1);
-    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
-    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
-    float invmax = inversesqrt(max(dot(T,T), dot(B,B)));
-    return mat3(T * invmax, B * invmax, N);
+    vec3 dp1 = dFdx(p); vec3 dp2 = dFdy(p); vec2 duv1 = dFdx(uv); vec2 duv2 = dFdy(uv);
+    vec3 dp2perp = cross(dp2, N); vec3 dp1perp = cross(N, dp1);
+    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x; vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+    float invmax = inversesqrt(max(dot(T,T), dot(B,B))); return mat3(T * invmax, B * invmax, N);
   }
-
   void main() {
-    vec3 N = normalize(vNormal);
-    vec3 V = normalize(vViewPosition);
-    mat3 TBN = cotangentFrame(N, -vViewPosition, vUv);
-    vec3 nTex = texture2D(normalMap, vUv).xyz * 2.0 - 1.0;
-    vec3 normal = normalize(TBN * nTex);
-
-    float sunDot = dot(normal, sunDirection);
-    float dayAmount = smoothstep(-0.1, 0.1, sunDot);
-
-    vec3 dayColor = texture2D(dayTexture, vUv).rgb;
-    vec3 nightColor = texture2D(nightTexture, vUv).rgb;
-    float specMask = texture2D(specularMap, vUv).r;
-
-    vec3 H = normalize(sunDirection + V);
-    float spec = pow(max(dot(normal, H), 0.0), 60.0) * specMask;
-
-    vec3 color = mix(nightColor * 0.2, dayColor, dayAmount);
-    color += vec3(1.0, 0.95, 0.9) * spec * 1.2;
-
+    vec3 N = normalize(vNormal); vec3 V = normalize(vViewPosition);
+    mat3 TBN = cotangentFrame(N, -vViewPosition, vUv); vec3 nTex = texture2D(normalMap, vUv).xyz * 2.0 - 1.0;
+    vec3 normal = normalize(TBN * nTex); float sunDot = dot(normal, sunDirection);
+    float dayAmount = smoothstep(-0.1, 0.1, sunDot); vec3 dayColor = texture2D(dayTexture, vUv).rgb;
+    vec3 nightColor = texture2D(nightTexture, vUv).rgb; float specMask = texture2D(specularMap, vUv).r;
+    vec3 H = normalize(sunDirection + V); float spec = pow(max(dot(normal, H), 0.0), 60.0) * specMask;
+    vec3 color = mix(nightColor * 0.2, dayColor, dayAmount); color += vec3(1.0, 0.95, 0.9) * spec * 1.2;
     gl_FragColor = vec4(color, 1.0);
-  }
-`;
+  }`;
 
 function initWelcome() {
-  const container = $('#welcome-globe');
-  if (!container) return;
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000000);
+  const container = $('#welcome-globe'); if (!container) return;
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000);
   const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 20000);
-  camera.position.set(0, 10, 320);
-  camera.lookAt(0, 0, 0);
-
+  camera.position.set(0, 10, 320); camera.lookAt(0, 0, 0);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2;
   container.appendChild(renderer.domElement);
-
   scene.add(new THREE.AmbientLight(0xffffff, 0.2));
-  const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
-  sunLight.position.copy(SUN_DIR).multiplyScalar(1000);
-  scene.add(sunLight);
-
-  const starGeo = new THREE.BufferGeometry();
-  const starCount = 4000;
-  const starPos = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount; i++) {
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    const r = 2500 + Math.random() * 4000;
-    starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-    starPos[i * 3 + 1] = r * Math.cos(phi);
-    starPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-  const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.5 }));
-  scene.add(stars);
-
-  const earthGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128);
-  const earthMat = new THREE.MeshPhongMaterial({ color: 0x223344 });
-  const earth = new THREE.Mesh(earthGeo, earthMat);
+  const sunLight = new THREE.DirectionalLight(0xffffff, 2.0); sunLight.position.copy(SUN_DIR).multiplyScalar(1000); scene.add(sunLight);
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128), new THREE.MeshPhongMaterial({ color: 0x223344 }));
   scene.add(earth);
-
-  const cloudGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.005, 96, 96);
   const cloudMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.8, depthWrite: false });
-  const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
-  scene.add(cloudMesh);
-
-  const loader = new THREE.TextureLoader();
-  loader.setCrossOrigin('anonymous');
-  const textures = { day: null, night: null, spec: null, normal: null };
-  let loaded = 0;
-  const onLoad = () => {
-    loaded++;
-    if (loaded === 4) {
-      earth.material = new THREE.ShaderMaterial({
-        uniforms: { dayTexture: { value: textures.day }, nightTexture: { value: textures.night }, specularMap: { value: textures.spec }, normalMap: { value: textures.normal }, sunDirection: { value: SUN_DIR.clone() } },
-        vertexShader: earthVertex, fragmentShader: earthFragment
-      });
-    }
-  };
-  loader.load(TEX.day, (t) => { textures.day = t; onLoad(); });
-  loader.load(TEX.night, (t) => { textures.night = t; onLoad(); });
-  loader.load(TEX.spec, (t) => { textures.spec = t; onLoad(); });
-  loader.load(TEX.normal, (t) => { textures.normal = t; onLoad(); });
-  loader.load(TEX.clouds, (t) => { cloudMat.map = t; cloudMat.needsUpdate = true; });
-
+  const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS * 1.005, 96, 96), cloudMat); scene.add(cloudMesh);
+  const loader = new THREE.TextureLoader(); loader.setCrossOrigin('anonymous');
+  const textures = {}; let loaded = 0;
+  const onLoad = () => { loaded++; if (loaded === 4) { earth.material = new THREE.ShaderMaterial({ uniforms: { dayTexture: { value: textures.day }, nightTexture: { value: textures.night }, specularMap: { value: textures.spec }, normalMap: { value: textures.normal }, sunDirection: { value: SUN_DIR.clone() } }, vertexShader: earthVertex, fragmentShader: earthFragment }); } };
+  loader.load(TEX.day, t => { textures.day = t; onLoad(); }); loader.load(TEX.night, t => { textures.night = t; onLoad(); });
+  loader.load(TEX.spec, t => { textures.spec = t; onLoad(); }); loader.load(TEX.normal, t => { textures.normal = t; onLoad(); });
+  loader.load(TEX.clouds, t => { cloudMat.map = t; cloudMat.needsUpdate = true; });
   let last = performance.now();
-  function loop() {
-    const now = performance.now();
-    const dt = Math.min(0.1, (now - last) / 1000);
-    last = now;
-    if (state.view === 'welcome') {
-      earth.rotation.y += dt * 0.01;
-      cloudMesh.rotation.y += dt * 0.015;
-      renderer.render(scene, camera);
-    }
+  (function loop() {
+    const now = performance.now(); const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (state.view === 'welcome') { earth.rotation.y += dt * 0.01; cloudMesh.rotation.y += dt * 0.015; renderer.render(scene, camera); }
     requestAnimationFrame(loop);
-  }
-  loop();
-  window.addEventListener('resize', () => {
-    if (state.view !== 'welcome') return;
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
+  })();
 }
 
 function ensureGlobe() {
-  if (globeCtx) { setTimeout(() => { if (globeCtx) onGlobeResize(); }, 20); return; }
-  const container = $('#globe-canvas');
-  if (!container) return;
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000000);
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 20000);
-  camera.position.set(0, 30, 320);
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
-  container.appendChild(renderer.domElement);
-
+  if (globeCtx) return;
+  const container = $('#globe-canvas'); if (!container) return;
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 20000); camera.position.set(0, 30, 320);
+  const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(container.clientWidth, container.clientHeight); renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; container.appendChild(renderer.domElement);
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.06;
-  controls.rotateSpeed = 0.5;
-  controls.zoomSpeed = 0.8;
-  controls.minDistance = 140;
-  controls.maxDistance = 700;
-  controls.enablePan = false;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.2;
-
-  scene.add(new THREE.AmbientLight(0x111122, 0.6));
-  const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
-  sunLight.position.copy(SUN_DIR).multiplyScalar(1000);
-  scene.add(sunLight);
-
-  const starGeo = new THREE.BufferGeometry();
-  const starCount = 4000;
-  const starPos = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount; i++) {
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    const r = 2500 + Math.random() * 4000;
-    starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-    starPos[i * 3 + 1] = r * Math.cos(phi);
-    starPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-  const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.6 }));
-  scene.add(stars);
-
+  controls.enableDamping = true; controls.dampingFactor = 0.06; controls.autoRotate = true; controls.autoRotateSpeed = 0.2;
+  scene.add(new THREE.AmbientLight(0x111122, 0.6)); const sunLight = new THREE.DirectionalLight(0xffffff, 1.5); sunLight.position.copy(SUN_DIR).multiplyScalar(1000); scene.add(sunLight);
   const earthUniforms = { dayTexture: { value: null }, nightTexture: { value: null }, specularMap: { value: null }, normalMap: { value: null }, sunDirection: { value: SUN_DIR.clone() } };
-  const earthMat = new THREE.ShaderMaterial({ uniforms: earthUniforms, vertexShader: earthVertex, fragmentShader: earthFragment });
-  const earthGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128);
-  const earth = new THREE.Mesh(earthGeo, earthMat);
-  scene.add(earth);
-
-  const cloudGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.005, 96, 96);
-  const cloudMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.8, depthWrite: false });
-  const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
-  scene.add(cloudMesh);
-
-  const loader = new THREE.TextureLoader();
-  loader.setCrossOrigin('anonymous');
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128), new THREE.ShaderMaterial({ uniforms: earthUniforms, vertexShader: earthVertex, fragmentShader: earthFragment })); scene.add(earth);
+  const cloudMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.8, depthWrite: false }); const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS * 1.005, 96, 96), cloudMat); scene.add(cloudMesh);
+  const loader = new THREE.TextureLoader(); loader.setCrossOrigin('anonymous');
   Promise.all([
-    new Promise((res) => loader.load(TEX.day, (t) => { earthUniforms.dayTexture.value = t; res(); })),
-    new Promise((res) => loader.load(TEX.night, (t) => { earthUniforms.nightTexture.value = t; res(); })),
-    new Promise((res) => loader.load(TEX.spec, (t) => { earthUniforms.specularMap.value = t; res(); })),
-    new Promise((res) => loader.load(TEX.normal, (t) => { earthUniforms.normalMap.value = t; res(); })),
-    new Promise((res) => loader.load(TEX.clouds, (t) => { cloudMat.map = t; cloudMat.needsUpdate = true; res(); }))
-  ]).then(() => { $('#view-globe').classList.remove('loading'); });
-
-  globeCtx = { scene, camera, renderer, controls, earth, cloudMesh, pins: [], raf: null };
+    new Promise(res => loader.load(TEX.day, t => { earthUniforms.dayTexture.value = t; res(); })),
+    new Promise(res => loader.load(TEX.night, t => { earthUniforms.nightTexture.value = t; res(); })),
+    new Promise(res => loader.load(TEX.spec, t => { earthUniforms.specularMap.value = t; res(); })),
+    new Promise(res => loader.load(TEX.normal, t => { earthUniforms.normalMap.value = t; res(); })),
+    new Promise(res => loader.load(TEX.clouds, t => { cloudMat.map = t; cloudMat.needsUpdate = true; res(); }))
+  ]);
+  globeCtx = { scene, camera, renderer, controls, earth, cloudMesh, pins: [] };
   
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
+  const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
   renderer.domElement.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startTime = performance.now();
-
+    if (e.button !== 0) return; const startX = e.clientX; const startY = e.clientY; const startTime = performance.now();
     const onUp = (upEvent) => {
-      const dist = Math.hypot(upEvent.clientX - startX, upEvent.clientY - startY);
-      const time = performance.now() - startTime;
-      if (dist < 5 && time < 300) {
+      if (Math.hypot(upEvent.clientX - startX, upEvent.clientY - startY) < 5 && performance.now() - startTime < 300) {
         const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((upEvent.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((upEvent.clientY - rect.top) / rect.height) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObject(earth);
-        if (intersects.length > 0) {
-          const point = intersects[0].point;
-          const latLng = vector3ToLatLng(point);
-          handleGlobeClick(latLng.lat, latLng.lng);
-        }
+        mouse.x = ((upEvent.clientX - rect.left) / rect.width) * 2 - 1; mouse.y = -((upEvent.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObject(earth);
+        if (intersects.length > 0) { const p = intersects[0].point; const r = p.length(); const lat = 90 - (Math.acos(p.y / r) * 180 / Math.PI); let lng = (Math.atan2(p.z, -p.x) * 180 / Math.PI) - 180; if (lng < -180) lng += 360; if (lng > 180) lng -= 360; handleGlobeClick(lat, lng); }
       }
       renderer.domElement.removeEventListener('pointerup', onUp);
     };
     renderer.domElement.addEventListener('pointerup', onUp);
   });
-
-  onGlobeResize();
-  window.addEventListener('resize', onGlobeResize);
-  startGlobeLoop();
+  window.addEventListener('resize', () => { const w = container.clientWidth; const h = container.clientHeight; camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h); });
+  
+  (function loop() {
+    if (document.body.dataset.view === 'globe') {
+      const dt = 0.016; if (globeCtx.earth) globeCtx.earth.rotation.y += dt * 0.003; if (globeCtx.cloudMesh) globeCtx.cloudMesh.rotation.y += dt * 0.004;
+      globeCtx.controls.update(); updateGlobePinPositions(); globeCtx.renderer.render(globeCtx.scene, globeCtx.camera);
+    }
+    requestAnimationFrame(loop);
+  })();
 }
 
 function handleGlobeClick(lat, lng) {
-  if (!state.user) {
-    toast('Sign in to drop a pin');
-    openAuthModal('signin');
-    return;
-  }
-  let placeName = '';
-  for (const [name, coords] of Object.entries(PLACE_COORDS)) {
-    if (Math.abs(coords.lat - lat) < 5 && Math.abs(coords.lng - lng) < 5) {
-      placeName = name;
-      break;
-    }
-  }
-  if (!placeName) placeName = `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
-  openComposeModal(placeName);
-}
-
-function onGlobeResize() {
-  if (!globeCtx) return;
-  const el = $('#view-globe');
-  if (!el || el.hidden) return;
-  const w = el.clientWidth;
-  const h = el.clientHeight;
-  globeCtx.camera.aspect = w / h;
-  globeCtx.camera.updateProjectionMatrix();
-  globeCtx.renderer.setSize(w, h);
-}
-
-function startGlobeLoop() {
-  if (!globeCtx) return;
-  let last = performance.now();
-  function loop() {
-    const now = performance.now();
-    const dt = Math.min(0.1, (now - last) / 1000);
-    last = now;
-    if (document.body.dataset.view === 'globe') {
-      if (globeCtx.earth) globeCtx.earth.rotation.y += dt * 0.003;
-      if (globeCtx.cloudMesh) globeCtx.cloudMesh.rotation.y += dt * 0.004;
-      globeCtx.controls.update();
-      updateGlobePinPositions();
-      globeCtx.renderer.render(globeCtx.scene, globeCtx.camera);
-    }
-    globeCtx.raf = requestAnimationFrame(loop);
-  }
-  loop();
-}
-
-function latLngToVec3(lat, lng, r = GLOBE_RADIUS) {
-  const phi = (90 - lat) * Math.PI / 180;
-  const theta = (lng + 180) * Math.PI / 180;
-  return new THREE.Vector3(
-    -r * Math.sin(phi) * Math.cos(theta),
-     r * Math.cos(phi),
-     r * Math.sin(phi) * Math.sin(theta)
-  );
-}
-
-function vector3ToLatLng(v) {
-  const r = v.length();
-  const lat = 90 - (Math.acos(v.y / r) * 180 / Math.PI);
-  let lng = (Math.atan2(v.z, -v.x) * 180 / Math.PI) - 180;
-  if (lng < -180) lng += 360;
-  if (lng > 180) lng -= 360;
-  return { lat, lng };
+  if (!state.user) { toast('Sign in to drop a pin'); openAuthModal('signin'); return; }
+  openComposeModal();
 }
 
 function renderGlobePins() {
-  if (!globeCtx) return;
-  const wrap = $('#globe-pins');
-  wrap.innerHTML = '';
-  globeCtx.pins = [];
-
-  const pinnedPosts = db.posts.filter((p) => p.place);
-  pinnedPosts.forEach((post) => {
-    const coords = placeToCoords(post.place);
-    const pos = latLngToVec3(coords.lat, coords.lng, GLOBE_RADIUS * 1.01);
-
-    const el = document.createElement('div');
-    el.className = 'globe-pin';
-    el.innerHTML = `
-      <div class="globe-pin-dot"></div>
-      <div class="globe-pin-label">${esc(post.place)}</div>
-    `;
-    const goPost = (ev) => { ev.stopPropagation(); go('post', { postId: post.id }); };
-    el.querySelector('.globe-pin-dot').addEventListener('click', goPost);
-    el.querySelector('.globe-pin-label').addEventListener('click', goPost);
-
-    wrap.appendChild(el);
-    globeCtx.pins.push({ el, pos, post });
+  if (!globeCtx) return; const wrap = $('#globe-pins'); wrap.innerHTML = ''; globeCtx.pins = [];
+  db.posts.forEach(post => {
+    const pos = latLngToVec3(35, 135, GLOBE_RADIUS * 1.01); // Defaulting to Japan for now
+    const el = document.createElement('div'); el.className = 'globe-pin';
+    el.innerHTML = `<div class="globe-pin-dot"></div><div class="globe-pin-label">${esc(post.place)}</div>`;
+    el.querySelector('.globe-pin-dot').addEventListener('click', () => go('post', { postId: post.id }));
+    wrap.appendChild(el); globeCtx.pins.push({ el, pos });
   });
-
   updateGlobePinPositions();
 }
 
+function latLngToVec3(lat, lng, r = GLOBE_RADIUS) {
+  const phi = (90 - lat) * Math.PI / 180; const theta = (lng + 180) * Math.PI / 180;
+  return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
+}
+
 function updateGlobePinPositions() {
-  if (!globeCtx) return;
-  const { camera, earth } = globeCtx;
-  const v = new THREE.Vector3();
-
+  if (!globeCtx) return; const v = new THREE.Vector3();
   globeCtx.pins.forEach(({ el, pos }) => {
-    const rotated = pos.clone().applyEuler(earth.rotation);
-    const normal = rotated.clone().normalize();
-    const toCam = camera.position.clone().sub(rotated).normalize();
-    const visible = normal.dot(toCam) > -0.05;
-
-    if (!visible) { el.style.display = 'none'; return; }
-
-    v.copy(rotated).project(camera);
-    const w = globeCtx.renderer.domElement.clientWidth;
-    const h = globeCtx.renderer.domElement.clientHeight;
-    const x = (v.x * 0.5 + 0.5) * w;
-    const y = (-v.y * 0.5 + 0.5) * h;
-    el.style.display = '';
-    el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    const rotated = pos.clone().applyEuler(globeCtx.earth.rotation);
+    if (rotated.clone().normalize().dot(globeCtx.camera.position.clone().sub(rotated).normalize()) < -0.05) { el.style.display = 'none'; return; }
+    v.copy(rotated).project(globeCtx.camera);
+    el.style.display = ''; el.style.transform = `translate3d(${(v.x * 0.5 + 0.5) * globeCtx.renderer.domElement.clientWidth}px, ${(-v.y * 0.5 + 0.5) * globeCtx.renderer.domElement.clientHeight}px, 0)`;
   });
-}
-
-function flyToPlace(lat, lng) {
-  if (!globeCtx) return;
-  const target = latLngToVec3(lat, lng, 1).normalize();
-  const cam = globeCtx.camera;
-  const dist = 220;
-  const start = cam.position.clone();
-  const end = target.multiplyScalar(dist);
-  const startTime = performance.now();
-  const duration = 1200;
-  globeCtx.controls.autoRotate = false;
-  
-  function step() {
-    const t = Math.min(1, (performance.now() - startTime) / duration);
-    const eased = 1 - Math.pow(1 - t, 3);
-    cam.position.lerpVectors(start, end, eased);
-    cam.lookAt(0, 0, 0);
-    if (t < 1) requestAnimationFrame(step);
-    else globeCtx.controls.autoRotate = true;
-  }
-  step();
-}
-
-const PLACE_COORDS = {
-  'kyoto, japan': { lat: 35.0116, lng: 135.7681 },
-  'seoul, south korea': { lat: 37.5665, lng: 126.9780 },
-  'oaxaca, mexico': { lat: 17.0732, lng: -96.7266 },
-  'lisbon, portugal': { lat: 38.7223, lng: -9.1393 },
-  'istanbul, turkey': { lat: 41.0082, lng: 28.9784 },
-  'lagos, nigeria': { lat: 6.5244, lng: 3.3792 }
-};
-function placeToCoords(place) {
-  const norm = place.trim().toLowerCase();
-  if (PLACE_COORDS[norm]) return PLACE_COORDS[norm];
-  for (const key of Object.keys(PLACE_COORDS)) {
-    if (norm.includes(key.split(',')[0])) return PLACE_COORDS[key];
-  }
-  let h = 0;
-  for (let i = 0; i < place.length; i++) h = Math.imul(31, h) + place.charCodeAt(i) | 0;
-  return { lat: ((h >>> 0) % 120) - 60, lng: (((h >>> 8) >>> 0) % 340) - 170 };
 }
 
 /* ═══════════════════════════════════════════════════════
    BOOT
    ═══════════════════════════════════════════════════════ */
-document.body.dataset.view = 'welcome';
-initWelcome();
-
-$('#btn-enter').addEventListener('click', () => {
-  go('feed');
-});
+init();
 </script>
 </body>
 </html>
