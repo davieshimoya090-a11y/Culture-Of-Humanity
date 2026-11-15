@@ -13,9 +13,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <style>
-/* ═══════════════════════════════════════════════════════
-   Culture of Humanity · organic & interactive design
-   ═══════════════════════════════════════════════════════ */
 :root{
   --paper:#fbf8f1;
   --paper-2:#f2ebd9;
@@ -525,6 +522,22 @@ input,textarea,select{font-family:inherit;color:inherit}
   margin-bottom:28px;
 }
 
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--ink-4);
+  font-size: 0.8rem;
+  margin: 20px 0;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+.divider::before { margin-right: 16px; }
+.divider::after { margin-left: 16px; }
+
 .modal label{
   display:block;
   font-size:0.75rem;
@@ -772,16 +785,18 @@ input,textarea,select{font-family:inherit;color:inherit}
 </script>
 
 <script type="module">
-/* ═══════════════════════════════════════════════════════
-   Culture of Humanity · Supabase Integration
-   ═══════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ── Initialize Supabase ─────────────────────────────────
-const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM'; 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ── Initialize Supabase Safely ──────────────────────────
+let supabase = null;
+try {
+  const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM'; 
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (e) {
+  console.error("Supabase failed to initialize:", e);
+}
 
 /* ── App State ────────────────────────────────────────── */
 let db = { users: {}, posts: [], likes: [], comments: [], messages: [], follows: [], session: null };
@@ -809,41 +824,51 @@ function toast(msg) {
 
 /* ── Fetch Data from Supabase ─────────────────────────── */
 async function loadData() {
-  const { data: profiles } = await supabase.from('profiles').select('*');
-  if (profiles) profiles.forEach(p => db.users[p.id] = p);
+  if (!supabase) return;
+  try {
+    const { data: profiles } = await supabase.from('profiles').select('*');
+    if (profiles) profiles.forEach(p => db.users[p.id] = p);
 
-  const { data: posts } = await supabase.from('posts').select('*, likes(post_id, user_id), comments(*)').order('created_at', { ascending: false });
-  if (posts) db.posts = posts;
+    const { data: posts } = await supabase.from('posts').select('*, likes(post_id, user_id), comments(*)').order('created_at', { ascending: false });
+    if (posts) db.posts = posts;
 
-  const { data: follows } = await supabase.from('follows').select('*');
-  if (follows) db.follows = follows;
+    const { data: follows } = await supabase.from('follows').select('*');
+    if (follows) db.follows = follows;
 
-  if (state.user) {
-    const { data: messages } = await supabase.from('messages').select('*').or(`sender_id.eq.${state.user.id},receiver_id.eq.${state.user.id}`).order('created_at', { ascending: true });
-    if (messages) db.messages = messages;
+    if (state.user) {
+      const { data: messages } = await supabase.from('messages').select('*').or(`sender_id.eq.${state.user.id},receiver_id.eq.${state.user.id}`).order('created_at', { ascending: true });
+      if (messages) db.messages = messages;
+    }
+  } catch (e) {
+    console.error("Error loading data:", e);
   }
 }
 
 /* ── Auth State Listener ──────────────────────────────── */
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (session) {
-    state.user = session.user;
-  } else {
-    state.user = null;
-  }
-  await loadData();
-  render();
-});
+if (supabase) {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session) {
+      state.user = session.user;
+    } else {
+      state.user = null;
+    }
+    await loadData();
+    render();
+  });
+}
 
 /* ── Init ─────────────────────────────────────────────── */
 async function init() {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) state.user = session.user;
-    await loadData();
-  } catch(e) {
-    console.error("Database connection error:", e);
+  if (supabase) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) state.user = session.user;
+      await loadData();
+    } catch(e) {
+      console.error("Init error:", e);
+    }
   }
+  
   document.body.dataset.view = 'welcome';
   initWelcome();
   $('#btn-enter').addEventListener('click', () => go('feed'));
@@ -1140,6 +1165,8 @@ function viewTerms() { return `<div class="legal"><a class="back-link" data-view
    ═══════════════════════════════════════════════════════ */
 async function handleAuthSubmit(e) {
   e.preventDefault();
+  if (!supabase) { toast("Database not connected. Check console."); return; }
+  
   const fd = new FormData(e.target);
   const errEl = e.target.querySelector('[data-auth-error]');
   const email = fd.get('email');
@@ -1173,6 +1200,7 @@ async function handleAuthSubmit(e) {
 
 async function handleComposeSubmit(e) {
   e.preventDefault();
+  if (!supabase) return;
   const fd = new FormData(e.target);
   await supabase.from('posts').insert({
     author_id: state.user.id,
@@ -1188,7 +1216,7 @@ async function handleComposeSubmit(e) {
 }
 
 async function toggleLike(postId) {
-  if (!state.user) { openAuthModal('signin'); return; }
+  if (!state.user || !supabase) return;
   const post = db.posts.find(p => p.id === postId);
   const existing = post.likes.find(l => l.user_id === state.user.id);
   
@@ -1202,7 +1230,7 @@ async function toggleLike(postId) {
 }
 
 async function addComment(postId, text) {
-  if (!state.user || !text.trim()) return;
+  if (!state.user || !text.trim() || !supabase) return;
   await supabase.from('comments').insert({
     post_id: postId,
     author_id: state.user.id,
@@ -1213,7 +1241,7 @@ async function addComment(postId, text) {
 }
 
 async function followUser(userId) {
-  if (!state.user) { openAuthModal('signin'); return; }
+  if (!state.user || !supabase) return;
   const exists = db.follows.find(f => f.follower_id === state.user.id && f.following_id === userId);
   
   if (exists) {
@@ -1226,7 +1254,7 @@ async function followUser(userId) {
 }
 
 async function sendMessage(to, text) {
-  if (!state.user || !text.trim()) return;
+  if (!state.user || !text.trim() || !supabase) return;
   await supabase.from('messages').insert({
     sender_id: state.user.id,
     receiver_id: to,
@@ -1237,7 +1265,7 @@ async function sendMessage(to, text) {
 }
 
 async function signOut() {
-  await supabase.auth.signOut();
+  if (supabase) await supabase.auth.signOut();
   state.user = null;
   go('feed');
   toast('Signed out.');
@@ -1424,17 +1452,30 @@ function initWelcome() {
   const container = $('#welcome-globe'); if (!container) return;
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000);
   const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 20000);
-  camera.position.set(0, 10, 320); camera.lookAt(0, 0, 0);
+  
+  // Camera fixed to look like the reference image
+  camera.position.set(-130, 30, 260);
+  camera.lookAt(40, 0, 0); 
+
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2;
   container.appendChild(renderer.domElement);
-  scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+  
+  scene.add(new THREE.AmbientLight(0xffffff, 0.15));
   const sunLight = new THREE.DirectionalLight(0xffffff, 2.0); sunLight.position.copy(SUN_DIR).multiplyScalar(1000); scene.add(sunLight);
+  
   const earth = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128), new THREE.MeshPhongMaterial({ color: 0x223344 }));
   scene.add(earth);
-  const cloudMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.8, depthWrite: false });
+  
+  const cloudMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.7, depthWrite: false });
   const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS * 1.005, 96, 96), cloudMat); scene.add(cloudMesh);
+
+  // Atmosphere Glow
+  const atmGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.04, 96, 96);
+  const atmMat = new THREE.MeshBasicMaterial({ color: 0x3d7fd6, transparent: true, opacity: 0.15, side: THREE.BackSide });
+  const atmosphere = new THREE.Mesh(atmGeo, atmMat); scene.add(atmosphere);
+
   const loader = new THREE.TextureLoader(); loader.setCrossOrigin('anonymous');
   const textures = {}; let loaded = 0;
   const onLoad = () => { loaded++; if (loaded === 4) { earth.material = new THREE.ShaderMaterial({ uniforms: { dayTexture: { value: textures.day }, nightTexture: { value: textures.night }, specularMap: { value: textures.spec }, normalMap: { value: textures.normal }, sunDirection: { value: SUN_DIR.clone() } }, vertexShader: earthVertex, fragmentShader: earthFragment }); } };
