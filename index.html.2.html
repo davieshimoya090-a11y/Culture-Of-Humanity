@@ -39,8 +39,9 @@ button{font-family:inherit;background:none;border:none;cursor:pointer;color:inhe
 a{color:inherit;text-decoration:none;cursor:pointer}
 input,textarea,select{font-family:inherit;color:inherit}
 
+/* FIXED: Added pointer-events: none so the button is clickable */
 #view-welcome { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; color: #fff; overflow: hidden; background: #000; }
-#welcome-globe { position: absolute; inset: 0; z-index: 1; }
+#welcome-globe { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 #welcome-globe canvas { display: block; }
 .welcome-overlay { position: absolute; inset: 0; z-index: 2; background: linear-gradient(90deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 45%, transparent 75%); pointer-events: none; }
 .welcome-content { position: relative; z-index: 3; padding: 0 8vw; max-width: 800px; animation: fadeIn 1.5s ease both; }
@@ -90,8 +91,9 @@ input,textarea,select{font-family:inherit;color:inherit}
 .action-btn:hover { background:var(--paper-2); color:var(--ink); }
 .action-btn.liked { color:var(--red); background:rgba(196,90,77,0.1); }
 
+/* FIXED: pointer-events handled correctly for the globe */
 #view-globe { position:fixed; inset:72px 0 0 0; background:#000; overflow:hidden; }
-#globe-canvas { position:absolute; inset:0; cursor: crosshair; }
+#globe-canvas { position:absolute; inset:0; cursor: crosshair; pointer-events: auto; }
 #globe-pins { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
 .globe-pin { position:absolute; will-change:transform; }
 .globe-pin-dot { position:absolute; left:-8px; top:-8px; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 0 20px 6px rgba(90,171,129,0.8); pointer-events:auto; cursor:pointer; }
@@ -184,20 +186,79 @@ input,textarea,select{font-family:inherit;color:inherit}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ── FIX 1: Initialize Supabase Safely ──
+let supabase = null;
+try {
+  const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM';
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (e) {
+  console.error("Supabase failed to load:", e);
+}
+
+// ── FIX 2: Define Event Listeners Immediately ──
+// This ensures buttons work even if Supabase or Three.js crashes.
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
 let db = { users: {}, posts: [], likes: [], comments: [], messages: [], follows: [] };
 const state = { view: 'welcome', user: null, postId: null, profileUser: null, threadUser: null, authMode: 'signin' };
-const $ = (s, r = document) => r.querySelector(s);
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
 let toastTimer;
 function toast(msg) { const el = $('#toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 3000); }
 function timeAgo(t) { const sec = Math.floor((Date.now() - new Date(t).getTime()) / 1000); if (sec < 60) return 'just now'; if (sec < 3600) return Math.floor(sec / 60) + 'm ago'; return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
 
+document.addEventListener('click', (e) => {
+  // FIX 3: Modal Close Logic (Only close if clicking backdrop or X)
+  const closeBtn = e.target.closest('[data-close-modal]');
+  if (closeBtn) {
+    if (e.target === closeBtn || e.target.closest('.modal-close')) {
+      $('#modal-root').innerHTML = '';
+      return;
+    }
+  }
+
+  const viewTarget = e.target.closest('[data-view]');
+  if (viewTarget) { 
+    const v = viewTarget.dataset.view; 
+    if (v === 'profile') go('profile', { profileUser: state.user ? state.user.id : null }); 
+    else go(v); 
+    return; 
+  }
+  const profileTarget = e.target.closest('[data-profile]');
+  if (profileTarget) { go('profile', { profileUser: profileTarget.dataset.profile }); return; }
+  const openPost = e.target.closest('[data-open-post]');
+  if (openPost) { go('post', { postId: openPost.dataset.openPost }); return; }
+  const threadTarget = e.target.closest('[data-thread]');
+  if (threadTarget) { go('thread', { threadUser: threadTarget.dataset.thread }); return; }
+  const authTab = e.target.closest('[data-auth-tab]');
+  if (authTab) { openAuthModal(authTab.dataset.authTab); return; }
+  
+  const actionTarget = e.target.closest('[data-action]');
+  if (actionTarget) { 
+    const action = actionTarget.dataset.action; 
+    if (action === 'signout') signOut(); 
+    if (action === 'open-auth') openAuthModal('signin'); 
+    if (action === 'compose') openComposeModal(); 
+    if (action === 'like') toggleLike(actionTarget.dataset.id); 
+    if (action === 'follow') followUser(actionTarget.dataset.user); 
+    if (action === 'message-user') go('thread', { threadUser: actionTarget.dataset.user }); 
+    return; 
+  }
+});
+
+document.addEventListener('submit', (e) => {
+  if (e.target.closest('[data-auth-form]')) return handleAuthSubmit(e);
+  if (e.target.closest('[data-compose-form]')) return handleComposeSubmit(e);
+  const comment = e.target.closest('[data-comment-form]');
+  if (comment) { e.preventDefault(); const input = comment.querySelector('input'); addComment(comment.dataset.commentForm, input.value); input.value = ''; }
+  const thread = e.target.closest('[data-thread-form]');
+  if (thread) { e.preventDefault(); const input = thread.querySelector('input'); sendMessage(thread.dataset.threadForm, input.value); input.value = ''; }
+});
+
+// ── App Logic ──
 async function loadData() {
+  if (!supabase) return;
   try {
     const { data: profiles } = await supabase.from('profiles').select('*');
     if (profiles) profiles.forEach(p => db.users[p.id] = p);
@@ -212,23 +273,24 @@ async function loadData() {
   } catch (e) { console.error("Database error:", e); }
 }
 
-supabase.auth.onAuthStateChange(async (event, session) => {
-  state.user = session ? session.user : null;
-  await loadData();
-  render();
-});
+if (supabase) {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    state.user = session ? session.user : null;
+    await loadData();
+    render();
+  });
+}
 
 function init() {
   document.body.dataset.view = 'welcome';
   try { initWelcome(); } catch(e) { console.error("Globe error:", e); }
   $('#btn-enter').addEventListener('click', () => go('feed'));
   
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) {
-      state.user = session.user;
-      loadData().then(() => render());
-    }
-  }).catch(e => console.error(e));
+  if (supabase) {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) { state.user = session.user; loadData().then(() => render()); }
+    }).catch(e => console.error(e));
+  }
 }
 
 function go(view, params = {}) {
@@ -320,9 +382,12 @@ function viewLegal(type) {
 
 async function handleAuthSubmit(e) {
   e.preventDefault();
+  if (!supabase) { alert("Database not connected. Check console."); return; }
+  
   const fd = new FormData(e.target);
   const errEl = e.target.querySelector('[data-auth-error]');
   const email = fd.get('email'); const password = fd.get('password');
+  
   if (state.authMode === 'signin') {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { errEl.textContent = error.message; return; }
@@ -337,16 +402,17 @@ async function handleAuthSubmit(e) {
 
 async function handleComposeSubmit(e) {
   e.preventDefault();
+  if (!supabase) return;
   const fd = new FormData(e.target);
   await supabase.from('posts').insert({ author_id: state.user.id, caption: fd.get('caption'), place: fd.get('place'), emoji: fd.get('emoji'), theme: fd.get('theme') });
   closeModal(); await loadData(); render(); toast('Posted to the atlas');
 }
 
-async function toggleLike(postId) { if (!state.user) return; const post = db.posts.find(p => p.id === postId); const existing = post.likes.find(l => l.user_id === state.user.id); if (existing) await supabase.from('likes').delete().match({ post_id: postId, user_id: state.user.id }); else await supabase.from('likes').insert({ post_id: postId, user_id: state.user.id }); await loadData(); render(); }
-async function addComment(postId, text) { if (!state.user || !text.trim()) return; await supabase.from('comments').insert({ post_id: postId, author_id: state.user.id, text: text.trim() }); await loadData(); render(); }
-async function followUser(userId) { if (!state.user) return; const exists = db.follows.find(f => f.follower_id === state.user.id && f.following_id === userId); if (exists) await supabase.from('follows').delete().match({ follower_id: state.user.id, following_id: userId }); else await supabase.from('follows').insert({ follower_id: state.user.id, following_id: userId }); await loadData(); render(); }
-async function sendMessage(to, text) { if (!state.user || !text.trim()) return; await supabase.from('messages').insert({ sender_id: state.user.id, receiver_id: to, text: text.trim() }); await loadData(); render(); }
-async function signOut() { await supabase.auth.signOut(); state.user = null; go('feed'); toast('Signed out.'); }
+async function toggleLike(postId) { if (!state.user || !supabase) return; const post = db.posts.find(p => p.id === postId); const existing = post.likes.find(l => l.user_id === state.user.id); if (existing) await supabase.from('likes').delete().match({ post_id: postId, user_id: state.user.id }); else await supabase.from('likes').insert({ post_id: postId, user_id: state.user.id }); await loadData(); render(); }
+async function addComment(postId, text) { if (!state.user || !text.trim() || !supabase) return; await supabase.from('comments').insert({ post_id: postId, author_id: state.user.id, text: text.trim() }); await loadData(); render(); }
+async function followUser(userId) { if (!state.user || !supabase) return; const exists = db.follows.find(f => f.follower_id === state.user.id && f.following_id === userId); if (exists) await supabase.from('follows').delete().match({ follower_id: state.user.id, following_id: userId }); else await supabase.from('follows').insert({ follower_id: state.user.id, following_id: userId }); await loadData(); render(); }
+async function sendMessage(to, text) { if (!state.user || !text.trim() || !supabase) return; await supabase.from('messages').insert({ sender_id: state.user.id, receiver_id: to, text: text.trim() }); await loadData(); render(); }
+async function signOut() { if (supabase) await supabase.auth.signOut(); state.user = null; go('feed'); toast('Signed out.'); }
 
 function openAuthModal(mode) {
   state.authMode = mode || 'signin';
@@ -360,49 +426,6 @@ function openComposeModal() {
 }
 
 function closeModal() { $('#modal-root').innerHTML = ''; }
-
-document.addEventListener('click', (e) => {
-  // FIX: Only close modal if clicking the backdrop or the X, not inside the modal
-  const closeBtn = e.target.closest('[data-close-modal]');
-  if (closeBtn) {
-    const isInsideModal = e.target.closest('.modal');
-    if (!isInsideModal || e.target.closest('.modal-close')) {
-      closeModal();
-      return;
-    }
-  }
-
-  const viewTarget = e.target.closest('[data-view]');
-  if (viewTarget) { const v = viewTarget.dataset.view; if (v === 'profile') go('profile', { profileUser: state.user ? state.user.id : null }); else go(v); return; }
-  const profileTarget = e.target.closest('[data-profile]');
-  if (profileTarget) { go('profile', { profileUser: profileTarget.dataset.profile }); return; }
-  const openPost = e.target.closest('[data-open-post]');
-  if (openPost) { go('post', { postId: openPost.dataset.openPost }); return; }
-  const threadTarget = e.target.closest('[data-thread]');
-  if (threadTarget) { go('thread', { threadUser: threadTarget.dataset.thread }); return; }
-  const authTab = e.target.closest('[data-auth-tab]');
-  if (authTab) { openAuthModal(authTab.dataset.authTab); return; }
-  const actionTarget = e.target.closest('[data-action]');
-  if (actionTarget) { 
-    const action = actionTarget.dataset.action; 
-    if (action === 'signout') signOut(); 
-    if (action === 'open-auth') openAuthModal('signin'); 
-    if (action === 'compose') openComposeModal(); 
-    if (action === 'like') toggleLike(actionTarget.dataset.id); 
-    if (action === 'follow') followUser(actionTarget.dataset.user); 
-    if (action === 'message-user') go('thread', { threadUser: actionTarget.dataset.user }); 
-    return; 
-  }
-});
-
-document.addEventListener('submit', (e) => {
-  if (e.target.closest('[data-auth-form]')) return handleAuthSubmit(e);
-  if (e.target.closest('[data-compose-form]')) return handleComposeSubmit(e);
-  const comment = e.target.closest('[data-comment-form]');
-  if (comment) { e.preventDefault(); const input = comment.querySelector('input'); addComment(comment.dataset.commentForm, input.value); input.value = ''; }
-  const thread = e.target.closest('[data-thread-form]');
-  if (thread) { e.preventDefault(); const input = thread.querySelector('input'); sendMessage(thread.dataset.threadForm, input.value); input.value = ''; }
-});
 
 // GLOBE
 let globeCtx = null;
