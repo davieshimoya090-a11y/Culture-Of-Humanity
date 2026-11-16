@@ -1,1801 +1,1500 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Culture Atlas</title>
-  <meta name="description" content="Share a piece of home. Explore the world's cultures through the eyes of the people who live them." />
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
-  
-  <style>
-    :root {
-      --paper: #FAF9F6;
-      --paper-dark: #F0EDE4;
-      --ink: #1A241A;
-      --ink-light: #5C6B5C;
-      --accent: #2D5A27;
-      --accent-light: #E8F0E6;
-      --border: #E5E0D5;
-      --card: #FFFFFF;
-      --shadow-sm: 0 4px 12px rgba(26, 36, 26, 0.05);
-      --shadow-md: 0 12px 32px rgba(26, 36, 26, 0.08);
-      --shadow-lg: 0 24px 64px rgba(26, 36, 26, 0.15);
-      --hand: 'Caveat', cursive;
-      --serif: 'Playfair Display', serif;
-      --sans: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --paper: #0F1710;
-        --paper-dark: #0A100A;
-        --ink: #E8F0E6;
-        --ink-light: #A3B8A3;
-        --accent: #5A9C50;
-        --accent-light: rgba(90, 156, 80, 0.15);
-        --border: #233323;
-        --card: #162116;
-        --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-        --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.4);
-      }
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background-color: var(--paper); color: var(--ink); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow: hidden; height: 100vh; transition: background-color 0.3s ease, color 0.3s ease; }
-    button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; transition: all 0.2s ease; }
-    input, textarea { font-family: inherit; width: 100%; border: 1px solid var(--border); background: var(--card); padding: 14px 16px; border-radius: 12px; font-size: 15px; color: var(--ink); outline: none; transition: all 0.2s ease; }
-    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
-
-    #loader { position: fixed; inset: 0; background: var(--paper); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease; }
-    #loader.hidden { opacity: 0; pointer-events: none; }
-    .spinner { width: 40px; height: 40px; border: 3px solid var(--accent-light); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-text { font-family: var(--hand); font-size: 28px; color: var(--accent); }
-
-    #welcome-view { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; pointer-events: none; background: radial-gradient(circle at 70% 50%, #0a1626 0%, #04070d 100%); }
-    #welcome-canvas { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-    .welcome-overlay { position: absolute; inset: 0; z-index: 2; background: linear-gradient(90deg, rgba(4, 7, 13, 0.95) 0%, rgba(4, 7, 13, 0.7) 45%, transparent 80%); pointer-events: none; }
-    .welcome-content { position: relative; z-index: 3; padding: 0 10vw; max-width: 700px; pointer-events: auto; animation: fadeUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .welcome-kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: #88bbee; margin-bottom: 24px; display: block; }
-    .welcome-title { font-family: var(--serif); font-size: clamp(3.5rem, 7vw, 6rem); line-height: 1.05; color: #fff; margin-bottom: 24px; letter-spacing: -0.02em; }
-    .welcome-title em { font-style: italic; color: #88bbee; font-weight: 400; }
-    .welcome-desc { font-size: 18px; line-height: 1.7; color: rgba(255, 255, 255, 0.7); margin-bottom: 48px; max-width: 480px; font-weight: 300; }
-    .welcome-actions { display: flex; gap: 16px; flex-wrap: wrap; }
-
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 36px; border-radius: 100px; font-weight: 600; font-size: 15px; cursor: pointer; letter-spacing: 0.02em; }
-    .btn-primary { background: var(--accent); color: #fff; box-shadow: var(--shadow-md); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-    .btn-secondary { background: var(--card); color: var(--ink); border: 1px solid var(--border); }
-    .btn-secondary:hover { border-color: var(--ink); }
-    .btn-white { background: #fff; color: #04070d; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-    .btn-white:hover { transform: translateY(-2px); background: #e6f0fa; }
-    .btn-outline { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); }
-    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.4); }
-
-    #app-view { display: none; height: 100vh; width: 100vw; background: var(--paper); }
-    #app-view.active { display: flex; }
-
-    .sidebar { width: 80px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 32px; z-index: 40; transition: width 0.3s ease; }
-    .logo-mark { font-family: var(--hand); font-size: 32px; font-weight: 700; color: var(--ink); cursor: pointer; }
-    .nav-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--ink-light); }
-    .nav-icon:hover { background: var(--paper-dark); color: var(--ink); }
-    .nav-icon.active { background: var(--accent-light); color: var(--accent); }
-    .nav-icon svg { width: 24px; height: 24px; }
-    .sidebar-spacer { flex: 1; }
-    .user-avatar-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid var(--card); box-shadow: var(--shadow-sm); cursor: pointer; }
-
-    .main-content { flex: 1; overflow-y: auto; position: relative; }
-    .top-bar { height: 72px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: var(--paper); position: sticky; top: 0; z-index: 30; }
-    .page-title { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--ink); }
-    .search-box { width: 300px; position: relative; }
-    .search-box input { padding: 10px 16px 10px 40px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); }
-    .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-light); }
-
-    #feed-view { display: none; padding: 40px 20px 100px; }
-    #feed-view.active { display: block; }
-    .post-card { background: var(--card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; max-width: 560px; margin: 0 auto 32px; box-shadow: var(--shadow-sm); transition: transform 0.3s ease; }
-    .post-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-    .post-header { padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
-    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; cursor: pointer; }
-    .post-author { font-weight: 600; font-size: 15px; color: var(--ink); cursor: pointer; }
-    .post-author:hover { text-decoration: underline; }
-    .post-time { font-size: 13px; color: var(--ink-light); }
-    .post-location { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
-    .post-image { width: 100%; height: auto; display: block; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .post-placeholder { width: 100%; aspect-ratio: 4/3; background: var(--paper-dark); display: flex; align-items: center; justify-content: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .post-placeholder svg { width: 64px; height: 64px; stroke: var(--border); stroke-width: 1.5; }
-    .post-caption { padding: 24px; font-family: var(--hand); font-size: 26px; line-height: 1.4; color: var(--ink); }
-    .post-footer { padding: 0 24px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .like-btn { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink-light); font-size: 14px; }
-    .like-btn:hover { color: var(--accent); }
-    .like-btn.liked { color: #d9534f; }
-    .like-btn.liked svg { fill: #d9534f; stroke: #d9534f; }
-    .link-btn { font-size: 14px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 6px; }
-    .link-btn:hover { text-decoration: underline; }
-
-    #globe-view { display: none; height: 100%; position: relative; background: #000; }
-    #globe-view.active { display: block; }
-    #canvas-container { width: 100%; height: 100%; }
-    .globe-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 32px; }
-    .globe-instructions { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; align-self: center; border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: auto; }
-    .globe-controls { align-self: flex-end; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
-    .globe-btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.9); color: var(--ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); font-size: 20px; }
-    .globe-btn:hover { background: #fff; transform: scale(1.05); }
-
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
-    .modal-box { background: var(--paper); border-radius: 32px; width: 100%; max-width: 480px; padding: 48px; box-shadow: var(--shadow-lg); position: relative; transform: translateY(20px); transition: transform 0.3s ease; max-height: 90vh; overflow-y: auto; }
-    .modal-backdrop.active .modal-box { transform: translateY(0); }
-    .modal-close { position: absolute; top: 24px; right: 24px; width: 32px; height: 32px; border-radius: 50%; background: var(--paper-dark); display: flex; align-items: center; justify-content: center; color: var(--ink-light); }
-    .modal-close:hover { background: var(--border); color: var(--ink); }
-    .modal-title { font-family: var(--serif); font-size: 42px; line-height: 1.1; margin-bottom: 32px; color: var(--ink); }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Culture of Humanity</title>
+<meta name="description" content="One world. A thousand ways to live in it. Share your culture, pin it to the globe, and meet people everywhere." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet" />
+<style>
+  /* ---------------------------------------------------------
+     COLOR PALETTE
+     Chinese Black: #0C1519
+     Dark Jungle Green: #162127
+     Jet: #3A3534
+     Coffee: #724B39
+     Antique Brass: #CF9D7B
+  --------------------------------------------------------- */
+  :root {
+    --bg: #0C1519;
+    --surface: #162127;
+    --border: #3A3534;
+    --coffee: #724B39;
+    --brass: #CF9D7B;
+    --brass-dim: rgba(207, 157, 123, 0.7);
+    --brass-faint: rgba(207, 157, 123, 0.15);
     
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); margin-bottom: 8px; }
-    .error-text { color: #c45a4d; font-size: 14px; font-weight: 500; margin-bottom: 16px; min-height: 20px; }
-    .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: 100px; font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 24px; }
-    .btn-google:hover { background: var(--paper-dark); }
-    .divider { display: flex; align-items: center; text-align: center; color: var(--ink-light); font-size: 13px; font-weight: 600; margin: 24px 0; }
-    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
-    .divider::before { margin-right: 16px; } .divider::after { margin-left: 16px; }
+    --font-head: 'Caveat', 'Segoe Script', cursive;
+    --font-body: 'Patrick Hand', 'Segoe Script', cursive;
+  }
 
-    #street-view-modal .modal-box { max-width: 900px; padding: 24px; height: 80vh; display: flex; flex-direction: column; }
-    #panorama-container { flex: 1; width: 100%; border-radius: 16px; overflow: hidden; background: #000; margin-bottom: 16px; }
-    .sv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .sv-title { font-family: var(--serif); font-size: 24px; color: var(--ink); }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  
+  html, body {
+    margin: 0;
+    height: 100%;
+    background-color: var(--bg);
+    color: var(--brass);
+    font-family: var(--font-body);
+    font-size: 18px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
 
-    .toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-    .toast { background: var(--ink); color: var(--paper); padding: 14px 28px; border-radius: 100px; font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease both; }
-    @keyframes toastIn { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  h1, h2, h3, h4, .hand {
+    font-family: var(--font-head);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin: 0;
+    color: var(--brass);
+  }
 
-    @media (max-width: 768px) {
-      .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0 20px env(safe-area-inset-bottom); border-right: none; border-top: 1px solid var(--border); }
-      .logo-mark, .sidebar-spacer, .user-avatar-btn { display: none; }
-      .nav-icon { width: 56px; height: 56px; }
-      .top-bar { padding: 0 20px; }
-      .search-box { display: none; }
-      .main-content { padding-bottom: 70px; }
-      .modal-box { padding: 32px 24px; }
-      #welcome-view { padding: 0 6vw; text-align: center; }
-      .welcome-content { display: flex; flex-direction: column; align-items: center; }
-      .globe-overlay { padding: 20px 20px 90px; }
-      #street-view-modal .modal-box { height: 90vh; padding: 16px; }
+  button, input, textarea {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+  }
+  
+  button { cursor: pointer; transition: all 0.2s ease; }
+  ::selection { background: var(--coffee); color: var(--bg); }
+  
+  svg.i {
+    width: 22px; height: 22px;
+    fill: none; stroke: currentColor;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+    flex: none;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* --- BOOT --- */
+  .boot {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: var(--bg); z-index: 200;
+    font-family: var(--font-head); font-size: 28px; color: var(--brass);
+    animation: fade 0.4s ease;
+  }
+
+  /* --- AUTH --- */
+  .auth {
+    min-height: 100dvh; display: grid; place-items: center; padding: 24px;
+  }
+  .auth-card {
+    width: min(540px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+  .brand-mark {
+    width: 48px; height: 48px;
+    background: var(--coffee);
+    color: var(--bg);
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-family: var(--font-head); font-weight: 700; font-size: 24px;
+    border: 1px solid var(--brass-faint);
+  }
+  .brand-name { font-family: var(--font-head); font-size: 28px; font-weight: 700; }
+  
+  .auth h1 { font-size: clamp(38px, 6vw, 52px); line-height: 1.05; margin-bottom: 16px; }
+  .auth .sub { color: var(--brass-dim); font-size: 19px; margin-bottom: 32px; }
+  
+  .gbtn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding: 16px; border-radius: 10px;
+    background: var(--brass); color: var(--bg);
+    font-size: 19px; font-weight: 600;
+    border: 1px solid var(--brass);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .gbtn:hover { background: #e0b08e; transform: translateY(-1px); }
+  .gbtn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+  .gbtn svg { width: 22px; height: 22px; }
+
+  .fineprint {
+    color: var(--brass-dim); font-size: 15px; margin-top: 28px; line-height: 1.6;
+    border-top: 1px solid var(--border); padding-top: 20px;
+  }
+  .err {
+    background: rgba(114, 75, 57, 0.3); border: 1px solid var(--coffee);
+    color: var(--brass); padding: 14px; border-radius: 10px;
+    margin-top: 20px; font-size: 16px;
+  }
+
+  /* --- APP SHELL --- */
+  .app {
+    display: grid; grid-template-columns: 260px minmax(0, 1fr) 320px;
+    max-width: 1440px; margin: 0 auto;
+    min-height: 100dvh;
+  }
+
+  /* --- RAIL (Navigation) --- */
+  .rail {
+    position: sticky; top: 0; height: 100dvh;
+    border-right: 1px solid var(--border);
+    padding: 32px 24px;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+  }
+  .rail-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+  .rail nav { display: flex; flex-direction: column; gap: 8px; }
+  .rail nav button {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 16px; border-radius: 12px;
+    font-size: 19px; color: var(--brass-dim);
+    text-align: left; width: 100%;
+  }
+  .rail nav button:hover { color: var(--brass); background: var(--surface); }
+  .rail nav button.active { color: var(--brass); background: var(--surface); border-left: 3px solid var(--brass); border-radius: 0 12px 12px 0; }
+  
+  .rail-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: 24px; }
+  .me-chip {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 10px; border-radius: 12px; text-align: left;
+  }
+  .me-chip:hover { background: var(--surface); }
+  .me-chip .nm { font-family: var(--font-head); font-size: 20px; line-height: 1.1; color: var(--brass); }
+  .me-chip .hd { font-size: 14px; color: var(--brass-dim); }
+
+  /* --- MAIN FEED --- */
+  .main {
+    padding: 40px 40px 100px;
+    max-width: 680px; width: 100%; margin: 0 auto;
+  }
+  .feed-head { padding-bottom: 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .feed-head h2 { font-size: 42px; line-height: 1.1; margin-bottom: 8px; }
+  .feed-head p { color: var(--brass-dim); font-size: 18px; margin: 0; }
+
+  .post {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 32px;
+    overflow: hidden;
+    animation: rise 0.4s ease both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .post-head { display: flex; align-items: center; gap: 14px; padding: 20px 24px 16px; }
+  .post-head .who { flex: 1; min-width: 0; }
+  .post-name { font-family: var(--font-head); font-size: 24px; font-weight: 700; line-height: 1.1; }
+  .post-place { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--brass-dim); }
+  
+  .follow-btn {
+    padding: 8px 16px; border-radius: 8px; font-size: 16px;
+    border: 1px solid var(--border); color: var(--brass);
+  }
+  .follow-btn:hover { border-color: var(--brass); }
+  .follow-btn.on { background: var(--coffee); border-color: var(--coffee); color: var(--bg); }
+
+  .post-art { position: relative; background: var(--bg); aspect-ratio: 1/1; }
+  .post-art img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .culture-pill {
+    position: absolute; left: 20px; bottom: 20px;
+    padding: 8px 16px; border-radius: 100px;
+    background: rgba(12, 21, 25, 0.85); backdrop-filter: blur(8px);
+    color: var(--brass); font-size: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .post-actions { display: flex; align-items: center; gap: 20px; padding: 16px 24px 8px; }
+  .act { display: inline-flex; align-items: center; gap: 8px; color: var(--brass-dim); }
+  .act:hover { color: var(--brass); }
+  .act.on { color: var(--brass); }
+  .act.on svg { fill: var(--brass); stroke: var(--brass); }
+  .act .count { font-size: 16px; }
+
+  .post-caption { padding: 8px 24px 0; font-size: 19px; line-height: 1.6; color: var(--brass); margin: 0; }
+  .post-caption b { font-family: var(--font-head); font-size: 22px; font-weight: 700; margin-right: 8px; }
+  .post-tags { padding: 8px 24px 0; color: var(--coffee); font-size: 16px; }
+  .post-time { padding: 12px 24px 24px; color: var(--brass-dim); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+
+  .comments { border-top: 1px solid var(--border); padding: 16px 24px 20px; background: rgba(12, 21, 25, 0.3); }
+  .comment { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .comment .txt { font-size: 17px; line-height: 1.4; color: var(--brass-dim); }
+  .comment .txt b { font-family: var(--font-head); font-size: 19px; color: var(--brass); margin-right: 6px; }
+  
+  .comment-form { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+  .comment-form input {
+    flex: 1; padding: 12px 16px; border-radius: 10px; font-size: 16px;
+    background: var(--bg); border: 1px solid var(--border); color: var(--brass);
+  }
+  .comment-form input:focus { outline: none; border-color: var(--brass); }
+  .comment-form input::placeholder { color: var(--brass-dim); }
+  .comment-form button { color: var(--brass); font-size: 17px; padding: 4px 8px; font-weight: 600; }
+
+  /* --- AVATARS --- */
+  .avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--font-head); font-weight: 700; font-size: 22px;
+    color: var(--bg); flex: none; overflow: hidden;
+    background: var(--brass);
+    border: 2px solid var(--border);
+  }
+  .avatar.sm { width: 36px; height: 36px; font-size: 18px; }
+  .avatar.lg { width: 96px; height: 96px; font-size: 40px; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* --- SIDE PANEL --- */
+  .side {
+    position: sticky; top: 0; height: 100dvh; overflow-y: auto;
+    border-left: 1px solid var(--border);
+    padding: 40px 32px;
+    background: var(--bg);
+  }
+  .card { margin-bottom: 40px; }
+  .card h3 { font-size: 26px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .suggest { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .suggest .who { flex: 1; min-width: 0; }
+  .suggest .nm { font-family: var(--font-head); font-size: 21px; line-height: 1.1; color: var(--brass); }
+  .suggest .hd { font-size: 14px; color: var(--brass-dim); }
+  .mini-follow { padding: 6px 12px; border-radius: 8px; font-size: 14px; border: 1px solid var(--border); color: var(--brass); }
+  .mini-follow:hover { border-color: var(--brass); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { padding: 8px 16px; border-radius: 100px; font-size: 15px; border: 1px solid var(--border); color: var(--brass-dim); }
+  .tag:hover { border-color: var(--brass); color: var(--brass); }
+
+  /* --- GLOBE --- */
+  .globe-wrap {
+    position: relative; height: clamp(500px, 80vh, 800px);
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .globe-canvas { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+  .globe-canvas:active { cursor: grabbing; }
+  .globe-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; }
+  .chip {
+    padding: 10px 18px; border-radius: 100px; font-size: 15px;
+    background: rgba(12, 21, 25, 0.8); border: 1px solid var(--border);
+    color: var(--brass-dim); backdrop-filter: blur(10px);
+  }
+  .chip:hover { border-color: var(--brass); color: var(--brass); }
+  .chip.on { background: var(--coffee); color: var(--bg); border-color: var(--coffee); }
+  
+  .globe-hint {
+    position: absolute; left: 20px; bottom: 20px;
+    font-size: 16px; color: var(--brass-dim);
+    pointer-events: none;
+  }
+
+  .globe-card {
+    position: absolute; right: 20px; bottom: 20px; width: min(360px, calc(100% - 40px));
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    animation: rise 0.3s ease;
+  }
+  .globe-card .gc-top { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+  .globe-card .gc-name { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--brass); line-height: 1; }
+  .globe-card .gc-place { font-size: 15px; color: var(--brass-dim); }
+  .globe-card .gc-cap { font-size: 17px; line-height: 1.5; color: var(--brass); margin-bottom: 20px; }
+  .globe-card .gc-actions { display: flex; gap: 12px; }
+  .gc-btn { padding: 10px 18px; border-radius: 10px; font-size: 16px; border: 1px solid var(--border); color: var(--brass); }
+  .gc-btn:hover { border-color: var(--brass); }
+  .gc-btn.primary { background: var(--brass); color: var(--bg); border-color: var(--brass); }
+  .gc-close { position: absolute; top: 16px; right: 16px; color: var(--brass-dim); }
+  .gc-close:hover { color: var(--brass); }
+
+  /* --- EXPLORE --- */
+  .search-wrap { position: relative; margin-bottom: 32px; }
+  .search-wrap svg { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--brass-dim); width: 20px; height: 20px; }
+  .search-wrap input {
+    width: 100%; padding: 18px 20px 18px 52px;
+    border-radius: 12px; background: var(--surface);
+    border: 1px solid var(--border); color: var(--brass);
+    font-size: 19px;
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--brass); }
+  .search-wrap input::placeholder { color: var(--brass-dim); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-item {
+    position: relative; aspect-ratio: 1/1; border-radius: 12px;
+    overflow: hidden; background: var(--surface); border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .grid-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+  .grid-item:hover img { transform: scale(1.05); }
+  .grid-item .gcap {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 24px 16px 16px;
+    background: linear-gradient(transparent, rgba(12,21,25,0.95));
+    color: var(--brass); font-size: 16px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* --- PROFILE --- */
+  .profile-head { display: flex; gap: 32px; align-items: center; margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+  .profile-meta { flex: 1; }
+  .profile-meta h2 { font-size: 46px; line-height: 1; margin-bottom: 4px; }
+  .profile-handle { color: var(--brass-dim); font-size: 19px; margin-bottom: 12px; }
+  .profile-bio { font-size: 19px; line-height: 1.5; margin-bottom: 20px; }
+  .stats { display: flex; gap: 32px; }
+  .stat b { font-family: var(--font-head); font-size: 28px; display: block; line-height: 1; color: var(--brass); }
+  .stat span { font-size: 15px; color: var(--brass-dim); }
+  
+  .passport { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 24px; }
+  .stamp { border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; background: var(--surface); }
+  .stamp .co { font-family: var(--font-head); font-size: 22px; font-weight: 700; color: var(--brass); }
+  .stamp .ct { font-size: 14px; color: var(--brass-dim); margin-top: 4px; }
+
+  /* --- MODALS & FORMS --- */
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: grid; place-items: center; padding: 20px;
+    background: rgba(12, 21, 25, 0.9); backdrop-filter: blur(12px);
+    animation: fade 0.3s ease;
+    overflow-y: auto;
+  }
+  .modal-card {
+    position: relative; width: min(600px, 100%);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    animation: rise 0.3s ease;
+  }
+  .modal-card h3 { font-size: 36px; margin-bottom: 8px; }
+  .modal-card .sub { color: var(--brass-dim); font-size: 18px; margin-bottom: 32px; }
+  .modal-x { position: absolute; top: 20px; right: 20px; color: var(--brass-dim); padding: 8px; }
+  .modal-x:hover { color: var(--brass); }
+  
+  .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .field > span { font-size: 16px; color: var(--brass-dim); }
+  
+  input[type=text], input[type=number], textarea {
+    width: 100%; padding: 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--brass); font-size: 18px;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--brass); }
+  textarea { resize: vertical; min-height: 120px; }
+  
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 16px 24px; border-radius: 10px;
+    background: var(--brass); color: var(--bg);
+    font-size: 18px; font-weight: 600;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .btn:hover { background: #e0b08e; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+  .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--brass); }
+  .btn.ghost:hover { border-color: var(--brass); background: var(--surface); }
+  .btn.wide { width: 100%; }
+
+  .preview { margin-top: 16px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .preview img { width: 100%; display: block; }
+
+  /* --- TOASTS --- */
+  .toast-wrap {
+    position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%);
+    z-index: 120; display: flex; flex-direction: column; gap: 12px; align-items: center;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 14px 24px; border-radius: 100px;
+    font-size: 17px; color: var(--brass);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    animation: rise 0.3s ease;
+    max-width: 90vw; text-align: center;
+  }
+
+  .empty { text-align: center; padding: 80px 20px; color: var(--brass-dim); }
+  .empty .hand { font-size: 36px; color: var(--brass); display: block; margin-bottom: 12px; }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 1180px) {
+    .app { grid-template-columns: 240px minmax(0, 1fr); }
+    .side { display: none; }
+  }
+  @media (max-width: 820px) {
+    .app { grid-template-columns: 1fr; }
+    .rail {
+      position: fixed; left: 0; right: 0; bottom: 0; top: auto; height: auto;
+      flex-direction: row; align-items: center; justify-content: space-around;
+      padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
+      border-right: none; border-top: 1px solid var(--border);
+      background: var(--surface); z-index: 60;
     }
-  </style>
+    .rail-brand, .rail-foot { display: none; }
+    .rail nav { flex-direction: row; flex: 1; justify-content: space-around; gap: 0; }
+    .rail nav button { flex-direction: column; gap: 4px; font-size: 12px; padding: 8px; border-radius: 8px; }
+    .rail nav button.active { border-left: none; border-bottom: 2px solid var(--brass); border-radius: 8px 8px 0 0; }
+    .rail nav button svg { width: 24px; height: 24px; }
+    
+    .main { padding: 24px 20px 100px; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .row2 { grid-template-columns: 1fr; }
+    .profile-head { flex-direction: column; text-align: center; gap: 16px; }
+    .stats { justify-content: center; }
+    .globe-wrap { height: 60vh; }
+    .modal-card { padding: 32px 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
 </head>
 <body>
 
-  <div id="loader">
-    <div class="spinner"></div>
-    <div class="loader-text">Gathering the world...</div>
-  </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.6 3 14.4 0 18M12 3c-3 3.6-3 14.4 0 18"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.6 8.4-2.1 5.1-5.1 2.1 2.1-5.1z"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></symbol>
+  <symbol id="i-comment" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></symbol>
+</svg>
 
-  <div id="welcome-view">
-    <div id="welcome-canvas"></div>
-    <div class="welcome-overlay"></div>
-    <div class="welcome-content">
-      <span class="welcome-kicker">Global Atlas</span>
-      <h1 class="welcome-title">Explore the world<br>through <em>culture.</em></h1>
-      <p class="welcome-desc">
-        A living atlas of traditions, languages, and stories. Pin a memory, share a recipe, or simply wander through the places that make us human.
-      </p>
-      <div class="welcome-actions">
-        <button class="btn btn-white" id="btn-step-inside">Step Inside <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
-        <button class="btn btn-outline" onclick="openAuthModal('signin')">Sign in</button>
+<div class="boot" id="boot">Culture of Humanity</div>
+
+<div class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-mark">CoH</div>
+      <div class="brand-name">Culture of Humanity</div>
+    </div>
+    <h1>One world. A thousand ways to live in it.</h1>
+    <p class="sub">Share a tradition, a recipe, a craft, or a story. Pin it to the globe. <b>Someone on the other side of the world is waiting to learn it.</b></p>
+    <button class="gbtn" id="btn-google">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="currentColor" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.5 17.7 9.5 24 9.5z" opacity="0.8"/>
+        <path fill="currentColor" d="M46.1 24.6c0-1.6-.1-3.2-.4-4.6H24v9.1h12.4c-.6 3-2.3 5.6-4.8 7.3l7.5 5.8c4.4-4.1 7-10.1 7-17.6z"/>
+        <path fill="currentColor" d="M10.5 28.6a14.6 14.6 0 0 1 0-9.2l-7.9-6.2a24 24 0 0 0 0 21.6z" opacity="0.9"/>
+        <path fill="currentColor" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/>
+      </svg>
+      Continue with Google
+    </button>
+    <div id="auth-err"></div>
+    <p class="fineprint">Your posts, likes, follows, and saves are stored in your own Firebase project, under your rules. Nobody outside this project can see them until you invite them.</p>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="rail">
+    <div class="rail-brand">
+      <div class="brand-mark">CoH</div>
+      <div class="brand-name">Culture of Humanity</div>
+    </div>
+    <nav>
+      <button data-view="feed" class="active"><svg class="i"><use href="#i-home"/></svg><span>Feed</span></button>
+      <button data-view="globe"><svg class="i"><use href="#i-globe"/></svg><span>Globe</span></button>
+      <button data-view="explore"><svg class="i"><use href="#i-compass"/></svg><span>Explore</span></button>
+      <button data-view="saved"><svg class="i"><use href="#i-bookmark"/></svg><span>Saved</span></button>
+      <button data-view="profile"><svg class="i"><use href="#i-user"/></svg><span>You</span></button>
+    </nav>
+    <div class="rail-foot">
+      <button class="btn wide" id="btn-compose" style="margin-bottom:16px">
+        <svg class="i" style="width:20px;height:20px"><use href="#i-plus"/></svg>
+        Share
+      </button>
+      <button class="me-chip" data-view="profile" id="me-chip"></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="view" id="view-feed"></section>
+    <section class="view" id="view-globe" hidden></section>
+    <section class="view" id="view-explore" hidden></section>
+    <section class="view" id="view-saved" hidden></section>
+    <section class="view" id="view-profile" hidden></section>
+  </main>
+
+  <aside class="side" id="side"></aside>
+</div>
+
+<div class="modal" id="compose" hidden>
+  <div class="modal-card">
+    <button class="modal-x" id="compose-x" aria-label="Close"><svg class="i"><use href="#i-close"/></svg></button>
+    <h3>Share a piece of your culture</h3>
+    <p class="sub">A photo helps, but the story matters more.</p>
+    <form id="compose-form">
+      <label class="field"><span>Photo (optional)</span>
+        <input type="file" id="ci-image" accept="image/*" style="padding:12px 0;border:0;background:none" />
+      </label>
+      <div class="preview" id="ci-preview" hidden></div>
+      <label class="field"><span>Culture or tradition</span>
+        <input type="text" id="ci-culture" placeholder="Maasai beadwork" maxlength="60" required />
+      </label>
+      <label class="field"><span>Place</span>
+        <input type="text" id="ci-place" placeholder="Maasai Mara, Kenya" maxlength="80" required />
+      </label>
+      <div class="row2">
+        <label class="field"><span>Latitude</span><input type="number" id="ci-lat" step="any" placeholder="-1.5" /></label>
+        <label class="field"><span>Longitude</span><input type="number" id="ci-lng" step="any" placeholder="35.1" /></label>
+      </div>
+      <button class="btn ghost" type="button" id="btn-geo" style="margin-bottom:24px">
+        <svg class="i" style="width:20px;height:20px"><use href="#i-pin"/></svg>
+        Use my current location
+      </button>
+      <label class="field"><span>Your story</span>
+        <textarea id="ci-caption" placeholder="What does this mean to you? Who taught it to you? What should people know?" maxlength="900" required></textarea>
+      </label>
+      <label class="field"><span>Tags (comma separated)</span>
+        <input type="text" id="ci-tags" placeholder="beadwork, wedding, kenya" maxlength="120" />
+      </label>
+      <button class="btn wide" id="ci-submit" type="submit" style="margin-top:12px">Share with the world</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc,
+  query, orderBy, limit, onSnapshot, serverTimestamp, updateDoc, arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getStorage, ref as sRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA_mTm9fML-mYA9NnkAC_kXXVwPINCsEi0",
+  authDomain: "culture-of-humanity-6463f.firebaseapp.com",
+  projectId: "culture-of-humanity-6463f",
+  storageBucket: "culture-of-humanity-6463f.firebasestorage.app",
+  messagingSenderId: "604666895273",
+  appId: "1:604666895273:web:3d80a67ffa0c5d013702b8"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  me: null,
+  view: 'feed',
+  posts: [],
+  users: {},
+  following: new Set(),
+  saves: new Set(),
+  comments: {},
+  expandedComments: new Set(),
+  profileUid: null,
+  exploreTerm: '',
+  unsubPosts: null,
+  unsubMyData: null,
+  globe: null
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function initials(n){return (n||'?').trim().split(/\s+/).slice(0,2).map(p=>p.charAt(0).toUpperCase()).join('')||'?'}
+function timeAgo(ts){
+  if(!ts) return 'just now';
+  const d=Math.floor((Date.now()-(ts.toMillis?ts.toMillis():ts))/1000);
+  if(d<60) return 'just now';
+  if(d<3600) return Math.floor(d/60)+' minutes ago';
+  if(d<86400) return Math.floor(d/3600)+' hours ago';
+  if(d<604800) return Math.floor(d/86400)+' days ago';
+  return new Date(ts.toMillis?ts.toMillis():ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
+function toast(msg){
+  const wrap=$('#toasts'); const el=document.createElement('div');
+  el.className='toast'; el.textContent=msg; wrap.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(8px)';el.style.transition='opacity 0.3s,transform 0.3s';setTimeout(()=>el.remove(),320)},2800);
+}
+function avatarHTML(user, size){
+  const s = size ? ' ' + size : '';
+  if (user && user.photoURL) return `<div class="avatar${s}"><img src="${esc(user.photoURL)}" alt="" referrerpolicy="no-referrer"></div>`;
+  const name = user ? user.name : '?';
+  return `<div class="avatar${s}">${esc(initials(name))}</div>`;
+}
+function showAuthError(msg){
+  $('#auth-err').innerHTML = `<div class="err">${esc(msg)}</div>`;
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+async function ensureUserDoc(user){
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    const base = (user.displayName || 'Friend').trim();
+    const handle = base.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 20) || 'friend';
+    await setDoc(ref, {
+      name: base,
+      handle: handle,
+      country: '',
+      bio: '',
+      photoURL: user.photoURL || '',
+      createdAt: serverTimestamp()
+    });
+    return { uid: user.uid, name: base, handle, country:'', bio:'', photoURL: user.photoURL || '' };
+  }
+  const data = snap.data();
+  return { uid: user.uid, ...data };
+}
+
+async function signInWithGoogle(){
+  const btn = $('#btn-google');
+  const prev = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Opening Google...';
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    await signInWithPopup(auth, googleProvider);
+  } catch (e) {
+    console.error(e);
+    let msg = 'Google sign in could not complete. ';
+    if (e.code === 'auth/operation-not-allowed') msg += 'The Google provider is not enabled in Firebase Console, under Authentication > Sign in method.';
+    else if (e.code === 'auth/unauthorized-domain') msg += 'This domain is not authorized in Firebase Console, under Authentication > Settings > Authorized domains.';
+    else if (e.code === 'auth/popup-blocked') msg += 'Your browser blocked the popup. Allow popups for this site and try again.';
+    else if (e.code === 'auth/popup-closed-by-user') msg += 'The sign in window was closed. Try again.';
+    else if (e.code === 'auth/invalid-api-key') msg += 'The API key is not valid for this project.';
+    else msg += (e.message || '');
+    showAuthError(msg);
+    btn.disabled = false;
+    btn.innerHTML = prev;
+  }
+}
+$('#btn-google').addEventListener('click', signInWithGoogle);
+
+/* ============================================================
+   DATA LISTENERS
+   ============================================================ */
+function listenPosts(){
+  if (state.unsubPosts) state.unsubPosts();
+  const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(80));
+  state.unsubPosts = onSnapshot(q, snap => {
+    state.posts = snap.docs.map(d => {
+      const data = d.data();
+      return { id: d.id, ...data, createdAt: data.createdAt || null };
+    });
+    state.posts.forEach(p => {
+      if (!state.users[p.authorId]) {
+        state.users[p.authorId] = {
+          uid: p.authorId, name: p.authorName, handle: p.authorHandle,
+          photoURL: p.authorPhoto || ''
+        };
+      }
+    });
+    renderCurrentView();
+    if (state.globe) state.globe.refreshPins();
+  }, err => {
+    console.error(err);
+    toast('Could not load posts. Check Firestore rules.');
+  });
+}
+
+function listenMyData(uid){
+  if (state.unsubMyData) state.unsubMyData();
+  const followingRef = collection(db, 'users', uid, 'following');
+  const savesRef = collection(db, 'users', uid, 'saves');
+  let fDone = false, sDone = false;
+  const fUnsub = onSnapshot(followingRef, snap => {
+    state.following = new Set(snap.docs.map(d => d.id));
+    fDone = true;
+    if (fDone && sDone) renderCurrentView();
+  });
+  const sUnsub = onSnapshot(savesRef, snap => {
+    state.saves = new Set(snap.docs.map(d => d.id));
+    sDone = true;
+    if (fDone && sDone) renderCurrentView();
+  });
+  state.unsubMyData = () => { fUnsub(); sUnsub(); };
+}
+
+/* ============================================================
+   AUTH OBSERVER
+   ============================================================ */
+onAuthStateChanged(auth, async user => {
+  $('#boot').hidden = true;
+  if (user) {
+    try {
+      const me = await ensureUserDoc(user);
+      state.me = me;
+      $('#auth').hidden = true;
+      $('#app').hidden = false;
+      renderMeChip();
+      listenPosts();
+      listenMyData(me.uid);
+      setView('feed');
+    } catch (e) {
+      console.error(e);
+      showAuthError('Signed in with Google, but could not create your profile. Check Firestore rules and try again.');
+      $('#auth').hidden = false;
+    }
+  } else {
+    state.me = null;
+    if (state.unsubPosts) state.unsubPosts();
+    if (state.unsubMyData) state.unsubMyData();
+    $('#app').hidden = true;
+    $('#auth').hidden = false;
+  }
+});
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+function setView(v){
+  state.view = v;
+  $$('.rail nav button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  $$('.view').forEach(s => s.hidden = s.id !== 'view-' + v);
+  renderCurrentView();
+}
+$$('.rail nav button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.view === 'profile') state.profileUid = state.me.uid;
+  setView(b.dataset.view);
+}));
+$$('.me-chip').forEach(b => b.addEventListener('click', () => {
+  state.profileUid = state.me.uid;
+  setView('profile');
+}));
+
+function renderCurrentView(){
+  if (!state.me) return;
+  if (state.view === 'feed') renderFeed();
+  else if (state.view === 'globe') renderGlobe();
+  else if (state.view === 'explore') renderExplore();
+  else if (state.view === 'saved') renderSaved();
+  else if (state.view === 'profile') renderProfile();
+  renderSide();
+}
+
+function renderMeChip(){
+  const me = state.me;
+  $('#me-chip').innerHTML = `${avatarHTML(me, 'sm')}<div class="who"><div class="nm">${esc(me.name)}</div><div class="hd">@${esc(me.handle)}</div></div>`;
+}
+
+function renderSide(){
+  if (!state.me) return;
+  const suggestions = Object.values(state.users)
+    .filter(u => u.uid !== state.me.uid && !state.following.has(u.uid))
+    .slice(0, 5);
+  const tags = new Set();
+  state.posts.forEach(p => (p.tags || []).forEach(t => tags.add(t)));
+  const tagList = Array.from(tags).slice(0, 12);
+  $('#side').innerHTML = `
+    <div class="card">
+      <h3>People to meet</h3>
+      ${suggestions.length === 0 ? '<p style="color:var(--brass-dim);margin:0">You are already following everyone here.</p>' : suggestions.map(u => `
+        <div class="suggest">
+          ${avatarHTML(u, 'sm')}
+          <div class="who"><div class="nm">${esc(u.name)}</div><div class="hd">${esc(u.handle ? '@' + u.handle : '')}</div></div>
+          <button class="mini-follow" data-follow="${esc(u.uid)}" data-uid="${esc(u.uid)}">Follow</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <h3>Tags to wander</h3>
+      <div class="tag-row">
+        ${tagList.length === 0 ? '<p style="color:var(--brass-dim);margin:0">Tags appear as people share.</p>' : tagList.map(t => `<button class="tag" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}
       </div>
     </div>
-  </div>
+    <div class="card">
+      <h3>About this place</h3>
+      <p style="margin:0;color:var(--brass-dim);font-size:16px;line-height:1.6">Culture of Humanity is a small, calm space. No ads, no algorithm, no rank. Just people explaining what matters to them.</p>
+    </div>
+  `;
+}
 
-  <div id="app-view">
-    <aside class="sidebar">
-      <div class="logo-mark" onclick="switchView('feed')">A</div>
-      <button class="nav-icon active" id="nav-feed" onclick="switchView('feed')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-      </button>
-      <button class="nav-icon" id="nav-globe" onclick="switchView('globe')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-      </button>
-      <div class="sidebar-spacer"></div>
-      <div id="sidebar-auth"></div>
-    </aside>
+/* ---------- FEED ---------- */
+function renderFeed(){
+  const el = $('#view-feed');
+  const list = state.posts;
+  el.innerHTML = `
+    <div class="feed-head">
+      <h2>Today around the world</h2>
+      <p>Stories people chose to pass on.</p>
+    </div>
+    ${list.length === 0 ? `
+      <div class="empty">
+        <span class="hand">The world is quiet right now.</span>
+        Be the first to share something from your culture. Tap Share.
+      </div>
+    ` : list.map(p => renderPostCard(p)).join('')}
+  `;
+  attachPostHandlers(el);
+}
 
-    <main class="main-content">
-      <header class="top-bar">
-        <div class="page-title" id="page-title">Stories</div>
-        <div class="search-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="search-input" placeholder="Search places or people..." oninput="handleSearch(this.value)">
+function renderPostCard(p){
+  const mine = p.authorId === state.me.uid;
+  const liked = Array.isArray(p.likedBy) && p.likedBy.includes(state.me.uid);
+  const saved = state.saves.has(p.id);
+  const following = state.following.has(p.authorId);
+  const showComments = state.expandedComments.has(p.id);
+  const comments = state.comments[p.id] || [];
+  const author = { name: p.authorName, photoURL: p.authorPhoto || '' };
+  const tags = (p.tags || []).map(t => `#${esc(t)}`).join(' ');
+  return `
+    <article class="post" data-post="${esc(p.id)}">
+      <header class="post-head">
+        ${avatarHTML(author)}
+        <div class="who">
+          <div class="post-name">${esc(p.authorName)}</div>
+          <div class="post-place"><svg class="i" style="width:14px;height:14px"><use href="#i-pin"/></svg>${esc(p.place || '')}${p.country ? ', ' + esc(p.country) : ''}</div>
         </div>
+        ${mine ? '' : `<button class="follow-btn ${following ? 'on' : ''}" data-follow="${esc(p.authorId)}">${following ? 'Following' : 'Follow'}</button>`}
       </header>
-
-      <div id="feed-view" class="active">
-        <div id="feed-container"></div>
+      ${p.imageUrl ? `<div class="post-art"><img src="${esc(p.imageUrl)}" alt="${esc(p.culture)}" loading="lazy"><span class="culture-pill">${esc(p.culture)}</span></div>` : `<div class="post-art" style="background:linear-gradient(135deg,var(--surface),var(--bg))"><span class="culture-pill">${esc(p.culture)}</span></div>`}
+      <div class="post-actions">
+        <button class="act ${liked ? 'on' : ''}" data-like="${esc(p.id)}">
+          <svg class="i"><use href="#i-heart"/></svg><span class="count">${(p.likedBy || []).length || ''}</span>
+        </button>
+        <button class="act" data-comment-toggle="${esc(p.id)}">
+          <svg class="i"><use href="#i-comment"/></svg><span class="count">${comments.length || ''}</span>
+        </button>
+        <button class="act saved ${saved ? 'on' : ''}" data-save="${esc(p.id)}" style="margin-left:auto">
+          <svg class="i"><use href="#i-bookmark"/></svg>
+        </button>
       </div>
+      <p class="post-caption"><b>${esc(p.authorName.split(' ')[0])}</b>${esc(p.caption)}</p>
+      ${tags ? `<div class="post-tags">${tags}</div>` : ''}
+      <div class="post-time">${timeAgo(p.createdAt)}</div>
+      ${showComments ? `
+        <div class="comments">
+          ${comments.map(c => `
+            <div class="comment">
+              ${avatarHTML({name: c.userName}, 'sm')}
+              <div class="txt"><b>${esc(c.userName.split(' ')[0])}</b>${esc(c.text)}</div>
+            </div>
+          `).join('')}
+          <form class="comment-form" data-comment-form="${esc(p.id)}">
+            <input type="text" placeholder="Add a thought" maxlength="300" required />
+            <button type="submit">Post</button>
+          </form>
+        </div>
+      ` : (comments.length > 0 ? `<button class="comments-toggle" data-comment-toggle="${esc(p.id)}" style="padding:0 24px 16px;font-size:15px;color:var(--brass-dim);text-align:left;width:100%">See all ${comments.length} comment${comments.length === 1 ? '' : 's'}</button>` : '')}
+    </article>
+  `;
+}
 
-      <div id="globe-view">
-        <div id="canvas-container"></div>
-        <div class="globe-overlay">
-          <div class="globe-instructions">Drag to spin. Click anywhere to pin a location.</div>
-          <div class="globe-controls">
-            <button class="globe-btn" onclick="zoomGlobe(0.8)">+</button>
-            <button class="globe-btn" onclick="zoomGlobe(1.25)">−</button>
-            <button class="globe-btn" onclick="resetGlobe()">⌂</button>
+function attachPostHandlers(root){
+  root.querySelectorAll('[data-like]').forEach(b => b.addEventListener('click', () => toggleLike(b.dataset.like)));
+  root.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', () => toggleSave(b.dataset.save)));
+  root.querySelectorAll('[data-follow]').forEach(b => b.addEventListener('click', () => toggleFollow(b.dataset.follow)));
+  root.querySelectorAll('[data-comment-toggle]').forEach(b => b.addEventListener('click', () => toggleComments(b.dataset.commentToggle)));
+  root.querySelectorAll('[data-comment-form]').forEach(f => f.addEventListener('submit', e => {
+    e.preventDefault();
+    const input = f.querySelector('input');
+    postComment(f.dataset.commentForm, input.value.trim());
+    input.value = '';
+  }));
+}
+
+/* ---------- ACTIONS ---------- */
+async function toggleLike(postId){
+  const p = state.posts.find(x => x.id === postId);
+  if (!p) return;
+  const liked = Array.isArray(p.likedBy) && p.likedBy.includes(state.me.uid);
+  p.likedBy = liked ? (p.likedBy || []).filter(u => u !== state.me.uid) : [...(p.likedBy || []), state.me.uid];
+  renderCurrentView();
+  try {
+    await updateDoc(doc(db, 'posts', postId), { likedBy: liked ? arrayRemove(state.me.uid) : arrayUnion(state.me.uid) });
+  } catch (e) {
+    console.error(e);
+    toast('Could not update the like. Check Firestore rules.');
+  }
+}
+
+async function toggleSave(postId){
+  const ref = doc(db, 'users', state.me.uid, 'saves', postId);
+  const has = state.saves.has(postId);
+  try {
+    if (has) { await deleteDoc(ref); state.saves.delete(postId); }
+    else { await setDoc(ref, { createdAt: serverTimestamp() }); state.saves.add(postId); }
+    renderCurrentView();
+    toast(has ? 'Removed from saved' : 'Saved');
+  } catch (e) { console.error(e); toast('Could not save. Check Firestore rules.'); }
+}
+
+async function toggleFollow(targetUid){
+  if (targetUid === state.me.uid) return;
+  const ref = doc(db, 'users', state.me.uid, 'following', targetUid);
+  const has = state.following.has(targetUid);
+  try {
+    if (has) { await deleteDoc(ref); state.following.delete(targetUid); }
+    else { await setDoc(ref, { createdAt: serverTimestamp() }); state.following.add(targetUid); }
+    renderCurrentView();
+  } catch (e) { console.error(e); toast('Could not follow. Check Firestore rules.'); }
+}
+
+function toggleComments(postId){
+  if (state.expandedComments.has(postId)) state.expandedComments.delete(postId);
+  else {
+    state.expandedComments.add(postId);
+    if (!state.comments[postId]) loadComments(postId);
+  }
+  renderCurrentView();
+}
+
+async function loadComments(postId){
+  try {
+    const snap = await getDocs(query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt', 'asc'), limit(100)));
+    state.comments[postId] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCurrentView();
+  } catch (e) { console.error(e); }
+}
+
+async function postComment(postId, text){
+  if (!text) return;
+  try {
+    await addDoc(collection(db, 'posts', postId, 'comments'), {
+      userId: state.me.uid,
+      userName: state.me.name,
+      text: text,
+      createdAt: serverTimestamp()
+    });
+    await loadComments(postId);
+  } catch (e) { console.error(e); toast('Could not post comment. Check Firestore rules.'); }
+}
+
+/* ---------- EXPLORE ---------- */
+function renderExplore(){
+  const el = $('#view-explore');
+  const q = state.exploreTerm.toLowerCase();
+  const all = state.posts;
+  const filtered = q ? all.filter(p =>
+    (p.culture || '').toLowerCase().includes(q) ||
+    (p.place || '').toLowerCase().includes(q) ||
+    (p.country || '').toLowerCase().includes(q) ||
+    (p.caption || '').toLowerCase().includes(q) ||
+    (p.tags || []).some(t => t.toLowerCase().includes(q))
+  ) : all;
+  el.innerHTML = `
+    <div class="feed-head">
+      <h2>Wander the map</h2>
+      <p>Every square is a window into someone's life.</p>
+    </div>
+    <div class="search-wrap">
+      <svg class="i"><use href="#i-search"/></svg>
+      <input type="text" id="explore-search" placeholder="Search cultures, places, tags" value="${esc(state.exploreTerm)}" />
+    </div>
+    ${filtered.length === 0 ? '<div class="empty"><span class="hand">Nothing here yet.</span>Try a different search, or share something yourself.</div>' : `
+      <div class="grid">
+        ${filtered.map(p => `
+          <div class="grid-item" data-open-post="${esc(p.id)}">
+            ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.culture)}" loading="lazy">` : `<div style="width:100%;height:100%;background:linear-gradient(135deg,var(--surface),var(--bg))"></div>`}
+            <div class="gcap">${esc(p.culture)}</div>
           </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+  const s = $('#explore-search');
+  if (s) s.addEventListener('input', e => { state.exploreTerm = e.target.value; renderExplore(); s.focus(); s.setSelectionRange(s.value.length, s.value.length); });
+  el.querySelectorAll('[data-open-post]').forEach(b => b.addEventListener('click', () => {
+    state.expandedComments.add(b.dataset.openPost);
+    loadComments(b.dataset.openPost);
+    setView('feed');
+    setTimeout(() => {
+      const target = document.querySelector(`[data-post="${CSS.escape(b.dataset.openPost)}"]`);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  }));
+}
+
+/* ---------- SAVED ---------- */
+function renderSaved(){
+  const el = $('#view-saved');
+  const list = state.posts.filter(p => state.saves.has(p.id));
+  el.innerHTML = `
+    <div class="feed-head"><h2>Saved</h2><p>Things you want to come back to.</p></div>
+    ${list.length === 0 ? '<div class="empty"><span class="hand">Nothing saved yet.</span>Tap the bookmark on any post to keep it here.</div>' : list.map(p => renderPostCard(p)).join('')}
+  `;
+  attachPostHandlers(el);
+}
+
+/* ---------- PROFILE ---------- */
+async function renderProfile(){
+  const el = $('#view-profile');
+  const uid = state.profileUid || state.me.uid;
+  let user = state.users[uid];
+  if (!user && uid === state.me.uid) user = state.me;
+  if (!user) {
+    try { const snap = await getDoc(doc(db, 'users', uid)); if (snap.exists()) user = { uid, ...snap.data() }; } catch(e){}
+  }
+  if (!user) { el.innerHTML = '<div class="empty"><span class="hand">Profile not found.</span></div>'; return; }
+  const mine = uid === state.me.uid;
+  const following = state.following.has(uid);
+  const posts = state.posts.filter(p => p.authorId === uid);
+  const places = new Set(posts.map(p => p.country).filter(Boolean));
+  const cultures = new Set(posts.map(p => p.culture).filter(Boolean));
+  el.innerHTML = `
+    <div class="profile-head">
+      ${avatarHTML(user, 'lg')}
+      <div class="profile-meta">
+        <h2>${esc(user.name)}</h2>
+        <div class="profile-handle">@${esc(user.handle || 'friend')}${user.country ? ' · ' + esc(user.country) : ''}</div>
+        <p class="profile-bio">${esc(user.bio || 'Still finding the words. Give it time.')}</p>
+        <div class="stats">
+          <div class="stat"><b>${posts.length}</b><span>Stories</span></div>
+          <div class="stat"><b>${cultures.size}</b><span>Cultures</span></div>
+          <div class="stat"><b>${places.size}</b><span>Places</span></div>
         </div>
       </div>
-    </main>
-  </div>
+      ${mine ? '' : `<button class="btn ${following ? 'ghost' : ''}" data-follow="${esc(uid)}">${following ? 'Following' : 'Follow'}</button>`}
+    </div>
+    ${cultures.size > 0 ? `
+      <div class="card" style="margin-bottom:32px">
+        <h3>Culture passport</h3>
+        <div class="passport">
+          ${Array.from(cultures).slice(0, 12).map(c => `<div class="stamp"><div class="co">${esc(c.split(' ')[0])}</div><div class="ct">${esc(c)}</div></div>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+    <div class="profile-tabs" style="display:flex;gap:8px;border-top:1px solid var(--border);padding-top:16px;margin-bottom:24px">
+      <div class="profile-tab on" style="padding:8px 16px;border-radius:8px;font-size:17px;color:var(--brass);background:var(--surface);border:1px solid var(--border)">Stories</div>
+    </div>
+    ${posts.length === 0 ? '<div class="empty"><span class="hand">No stories yet.</span>' + (mine ? 'Share your first one.' : '') + '</div>' : posts.map(p => renderPostCard(p)).join('')}
+  `;
+  attachPostHandlers(el);
+  el.querySelectorAll('[data-follow]').forEach(b => b.addEventListener('click', () => toggleFollow(b.dataset.follow)));
+  
+  if (mine && !el.querySelector('#do-signout')) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:32px 0;';
+    wrap.innerHTML = '<button class="btn ghost" id="do-signout"><svg class="i" style="width:20px;height:20px"><use href="#i-out"/></svg>Sign out</button>';
+    el.appendChild(wrap);
+  }
+}
 
-  <div id="modal-container"></div>
-  <div id="toast-container" class="toast-container"></div>
+document.addEventListener('click', async e => {
+  if (e.target.closest('#do-signout')) {
+    try { await signOut(auth); toast('Signed out'); } catch(err) { toast('Could not sign out'); }
+  }
+});
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-  <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
-  </script>
+/* ============================================================
+   GLOBE
+   ============================================================ */
+function renderGlobe(){
+  const el = $('#view-globe');
+  if (el.dataset.ready === '1') {
+    if (state.globe) state.globe.resize();
+    return;
+  }
+  el.innerHTML = `
+    <div class="feed-head"><h2>The world, spinning</h2><p>Every dot is a story. Drag to spin, tap a dot to read it.</p></div>
+    <div class="globe-wrap">
+      <div class="globe-canvas" id="globe-canvas"></div>
+      <div class="globe-controls">
+        <button class="chip on" id="globe-autorotate">Auto rotate</button>
+        <button class="chip" id="globe-reset">Reset view</button>
+      </div>
+      <div class="globe-hint" id="globe-hint">Drag the globe. Pinch or scroll to zoom.</div>
+      <div id="globe-card-slot"></div>
+    </div>
+  `;
+  el.dataset.ready = '1';
+  bootGlobe();
+}
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+async function bootGlobe(){
+  let THREE;
+  try {
+    THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+  } catch (e) {
+    document.getElementById('globe-canvas').innerHTML = '<div style="padding:30px;color:var(--brass-dim)">The globe needs an internet connection on first load. Check your connection and refresh.</div>';
+    return;
+  }
+  const mount = document.getElementById('globe-canvas');
+  const width = mount.clientWidth || 800;
+  const height = mount.clientHeight || 600;
 
-    const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 1000);
+  camera.position.set(0, 0, 3.2);
 
-    /* ==========================================================
-       FIX FOR THE OAUTH REDIRECT BUG
-       We explicitly set the redirect URL to your local port.
-       When you deploy to Vercel, change this to your Vercel URL.
-       ========================================================== */
-    const REDIRECT_URL = 'http://localhost:3000';
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(width, height);
+  mount.appendChild(renderer.domElement);
 
-    let currentUser = null;
-    let database = { profiles: {}, posts: [] };
-    let currentSearch = "";
-    let isLoading = true;
+  const radius = 1;
+  const globeGeo = new THREE.SphereGeometry(radius, 96, 96);
+  const loader = new THREE.TextureLoader();
+  loader.setCrossOrigin('anonymous');
 
-    let scene, camera, renderer, controls, earthMesh;
-    let globePins = [];
-    let raycaster = new THREE.Raycaster();
-    let mouse = new THREE.Vector2();
-    let panoramaViewer = null;
+  const earthMat = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    specular: 0x333333,
+    shininess: 8
+  });
+  const globeMesh = new THREE.Mesh(globeGeo, earthMat);
+  scene.add(globeMesh);
 
-    function escapeHTML(str) {
-      return String(str || '').replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-      });
-    }
+  const earthUrl = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+  const bumpUrl = 'https://unpkg.com/three-globe/example/img/earth-topology.png';
+  loader.load(earthUrl, tex => { earthMat.map = tex; earthMat.needsUpdate = true; });
+  loader.load(bumpUrl, tex => { earthMat.bumpMap = tex; earthMat.bumpScale = 0.04; earthMat.needsUpdate = true; });
 
-    function showToast(message) {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
-      container.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
-    }
-
-    function timeAgo(dateString) {
-      if (!dateString) return 'Just now';
-      const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
-      if (seconds < 60) return 'Just now';
-      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-      return `${Math.floor(seconds / 86400)}d ago`;
-    }
-
-    function getInitials(name) {
-      if (!name) return '?';
-      return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-    }
-
-    /* ==========================================================
-       THREE.JS GLOBE
-       ========================================================== */
-    function initGlobe() {
-      const welcomeContainer = document.getElementById('welcome-canvas');
-      const appContainer = document.getElementById('canvas-container');
-
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 0, 280);
-
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setClearColor(0x000000, 0);
-      welcomeContainer.appendChild(renderer.domElement);
-
-      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-      dirLight.position.set(5, 3, 5);
-      scene.add(dirLight);
-
-      const geometry = new THREE.SphereGeometry(100, 64, 64);
-      const textureLoader = new THREE.TextureLoader();
-      const earthMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
-      const earthBump = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg');
-      
-      const material = new THREE.MeshPhongMaterial({
-        map: earthMap,
-        bumpMap: earthBump,
-        bumpScale: 0.5,
-        specular: new THREE.Color('grey'),
-        shininess: 10
-      });
-
-      earthMesh = new THREE.Mesh(geometry, material);
-      earthMesh.rotation.y = -Math.PI / 2;
-      scene.add(earthMesh);
-
-      const atmGeo = new THREE.SphereGeometry(103, 64, 64);
-      const atmMat = new THREE.MeshBasicMaterial({ color: 0x88bbee, transparent: true, opacity: 0.1, side: THREE.BackSide });
-      scene.add(new THREE.Mesh(atmGeo, atmMat));
-
-      controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.rotateSpeed = 0.5;
-      controls.minDistance = 150;
-      controls.maxDistance = 500;
-      controls.enablePan = false;
-      controls.enabled = false;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.5;
-
-      renderer.domElement.addEventListener('pointerdown', onPointerDown);
-      renderer.domElement.addEventListener('pointerup', onPointerUp);
-      window.addEventListener('resize', onWindowResize);
-
-      function animate() {
-        requestAnimationFrame(animate);
-        if (!controls.enabled) {
-          earthMesh.rotation.y += 0.002;
-        } else {
-          controls.update();
-        }
-        renderer.render(scene, camera);
+  const atmGeo = new THREE.SphereGeometry(radius * 1.12, 64, 64);
+  const atmMat = new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vNormal;
+      void main(){
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
-      animate();
-    }
-
-    function onWindowResize() {
-      const isAppView = document.getElementById('app-view').classList.contains('active');
-      const container = isAppView ? document.getElementById('canvas-container') : document.getElementById('welcome-canvas');
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    }
-
-    let pointerDownPos = null;
-    function onPointerDown(e) { pointerDownPos = { x: e.clientX, y: e.clientY }; }
-    function onPointerUp(e) {
-      if (!pointerDownPos) return;
-      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-      pointerDownPos = null;
-      if (dist < 5) handleGlobeClick(e);
-    }
-
-    function handleGlobeClick(e) {
-      if (!controls.enabled) return;
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
-
-      const pinIntersects = raycaster.intersectObjects(globePins);
-      if (pinIntersects.length > 0) {
-        openPinDetail(pinIntersects[0].object.userData.post.id);
-        return;
+    `,
+    fragmentShader: `
+      varying vec3 vNormal;
+      void main(){
+        float intensity = pow(0.62 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
+        gl_FragColor = vec4(0.81, 0.61, 0.48, 1.0) * intensity;
       }
+    `,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true
+  });
+  scene.add(new THREE.Mesh(atmGeo, atmMat));
 
-      if (!currentUser) { showToast('Please sign in to pin a location.'); openAuthModal('signin'); return; }
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xfff4e0, 1.25);
+  key.position.set(5, 3, 4);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x724B39, 0.35);
+  rim.position.set(-4, -2, -3);
+  scene.add(rim);
+
+  const pinsGroup = new THREE.Group();
+  scene.add(pinsGroup);
+
+  function latLngToVec3(lat, lng, r){
+    const phi = (90 - lat) * Math.PI / 180;
+    const theta = (lng + 180) * Math.PI / 180;
+    return new THREE.Vector3(
+      -r * Math.sin(phi) * Math.cos(theta),
+       r * Math.cos(phi),
+       r * Math.sin(phi) * Math.sin(theta)
+    );
+  }
+
+  const pinGeo = new THREE.SphereGeometry(0.012, 12, 12);
+  const pinMat = new THREE.MeshBasicMaterial({ color: 0xCF9D7B });
+
+  function refreshPins(){
+    while (pinsGroup.children.length) {
+      const c = pinsGroup.children.pop();
+      if (c.geometry) c.geometry.dispose();
+      if (c.material) c.material.dispose();
+    }
+    state.posts.forEach(p => {
+      if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+      const pos = latLngToVec3(p.lat, p.lng, radius * 1.005);
+      const pin = new THREE.Mesh(pinGeo, pinMat.clone());
+      pin.position.copy(pos);
+      pin.userData.postId = p.id;
+      pin.scale.setScalar(1.6);
+      pinsGroup.add(pin);
       
-      const earthIntersects = raycaster.intersectObject(earthMesh);
-      if (earthIntersects.length > 0) {
-        const point = earthIntersects[0].point;
-        const radius = 100;
-        const lat = 90 - (Math.acos(point.y / radius) * 180 / Math.PI);
-        let lng = (Math.atan2(point.z, -point.x) * 180 / Math.PI) - 180;
-        if (lng < -180) lng += 360;
-        if (lng > 180) lng -= 360;
-        openComposeModal(lat, lng);
-      }
-    }
-
-    function addPinToGlobe(post) {
-      if (post.lat == null || post.lng == null) return;
-      const radius = 100;
-      const phi = (90 - post.lat) * Math.PI / 180;
-      const theta = (post.lng + 180) * Math.PI / 180;
-      const x = -(radius * Math.sin(phi) * Math.cos(theta));
-      const y = (radius * Math.cos(phi));
-      const z = (radius * Math.sin(phi) * Math.sin(theta));
-
-      const pinGeo = new THREE.SphereGeometry(1.5, 8, 8);
-      const pinMat = new THREE.MeshBasicMaterial({ color: 0x2D5A27 });
-      const pinMesh = new THREE.Mesh(pinGeo, pinMat);
-      pinMesh.position.set(x, y, z);
-      pinMesh.userData = { post: post };
-      earthMesh.add(pinMesh);
-      globePins.push(pinMesh);
-    }
-
-    function clearPins() {
-      globePins.forEach(p => {
-        earthMesh.remove(p);
-        p.geometry.dispose();
-        p.material.dispose();
-      });
-      globePins = [];
-    }
-
-    window.zoomGlobe = function(factor) {
-      if (!camera || !controls.enabled) return;
-      const dist = camera.position.length() * factor;
-      camera.position.copy(camera.position.clone().normalize().multiplyScalar(Math.max(150, Math.min(500, dist))));
-      controls.update();
-    };
-
-    window.resetGlobe = function() {
-      if (!camera || !controls.enabled) return;
-      camera.position.set(0, 0, 280);
-      controls.update();
-    };
-
-    function flyTo(lat, lng) {
-      if (!camera) return;
-      const phi = (90 - lat) * Math.PI / 180;
-      const theta = (lng + 180) * Math.PI / 180;
-      const radius = 200;
-      
-      const targetPos = new THREE.Vector3(
-        -(radius * Math.sin(phi) * Math.cos(theta)),
-        (radius * Math.cos(phi)),
-        (radius * Math.sin(phi) * Math.sin(theta))
+      const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(0.022, 12, 12),
+        new THREE.MeshBasicMaterial({ color: 0x724B39, transparent: true, opacity: 0.35 })
       );
-
-      const startPos = camera.position.clone();
-      const startTime = performance.now();
-      controls.autoRotate = false;
-
-      function step() {
-        const t = Math.min(1, (performance.now() - startTime) / 1200);
-        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        camera.position.lerpVectors(startPos, targetPos, eased);
-        camera.lookAt(0, 0, 0);
-        if (t < 1) requestAnimationFrame(step);
-      }
-      step();
-    }
-
-    /* ==========================================================
-       SUPABASE LOGIC
-       ========================================================== */
-    async function initApp() {
-      const { data: { session } } = await supabase.auth.getSession();
-      currentUser = session ? session.user : null;
-      renderSidebarAuth();
-      
-      isLoading = true;
-      renderFeed();
-      await fetchData();
-      isLoading = false;
-      renderFeed();
-
-      supabase.auth.onAuthStateChange((_event, session) => {
-        currentUser = session ? session.user : null;
-        renderSidebarAuth();
-        fetchData();
-      });
-    }
-
-    async function fetchData() {
-      try {
-        const { data: profiles } = await supabase.from('profiles').select('*');
-        database.profiles = {};
-        if (profiles) profiles.forEach(p => database.profiles[p.id] = p);
-
-        const { data: posts } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
-        database.posts = posts || [];
-
-        clearPins();
-        database.posts.forEach(post => addPinToGlobe(post));
-
-      } catch (error) { 
-        console.error(error); 
-        showToast('Failed to load data.');
-      }
-    }
-
-    /* ==========================================================
-       UI RENDERING
-       ========================================================== */
-    function renderSidebarAuth() {
-      const container = document.getElementById('sidebar-auth');
-      if (currentUser) {
-        const profile = database.profiles[currentUser.id];
-        const name = profile ? profile.full_name : 'User';
-        container.innerHTML = `<div class="user-avatar-btn" onclick="openComposeModal()" title="Pin a memory">${getInitials(name)}</div>`;
-      } else {
-        container.innerHTML = `<button class="btn btn-primary" style="padding: 12px 24px; font-size: 14px;" onclick="openAuthModal('signin')">Sign in</button>`;
-      }
-    }
-
-    let searchTimeout;
-    window.handleSearch = function(val) {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        currentSearch = val.toLowerCase();
-        renderFeed();
-      }, 300);
-    };
-
-    function renderFeed() {
-      const container = document.getElementById('feed-container');
-      
-      if (isLoading) {
-        container.innerHTML = `<div style="text-align: center; padding: 60px; color: var(--ink-light);"><div class="spinner" style="margin: 0 auto 20px;"></div><p>Gathering stories...</p></div>`;
-        return;
-      }
-
-      let filtered = database.posts;
-      if (currentSearch) {
-        filtered = filtered.filter(p => 
-          (p.location_name || '').toLowerCase().includes(currentSearch) ||
-          (database.profiles[p.author_id]?.full_name || '').toLowerCase().includes(currentSearch) ||
-          (p.caption || '').toLowerCase().includes(currentSearch)
-        );
-      }
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 80px 20px; color: var(--ink-light);"><h2 style="font-family: var(--hand); font-size: 36px; color: var(--ink); margin-bottom: 12px;">It is quiet here</h2><p>Be the first to share a piece of your culture.</p></div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(post => {
-        const author = database.profiles[post.author_id] || { full_name: 'Unknown' };
-        const isLiked = currentUser && post.likes && post.likes.includes(currentUser.id);
-        const likeCount = post.likes ? post.likes.length : 0;
-
-        return `
-          <article class="post-card">
-            <header class="post-header">
-              <div class="avatar" onclick="openProfile('${post.author_id}')">${getInitials(author.full_name)}</div>
-              <div>
-                <div class="post-author" onclick="openProfile('${post.author_id}')">${escapeHTML(author.full_name)}</div>
-                <div class="post-time">${timeAgo(post.created_at)}</div>
-              </div>
-              <div class="post-location">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                ${escapeHTML(post.location_name)}
-              </div>
-            </header>
-            
-            ${post.image_url ? `<img src="${escapeHTML(post.image_url)}" class="post-image" onerror="this.style.display='none'" />` : `<div class="post-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></circle><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>`}
-            
-            <div class="post-caption">${escapeHTML(post.caption)}</div>
-            
-            <footer class="post-footer">
-              <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                ${likeCount}
-              </button>
-              <button class="link-btn" onclick="flyToPost('${post.id}')">
-                View on globe <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </button>
-            </footer>
-          </article>
-        `;
-      }).join('');
-    }
-
-    /* ==========================================================
-       ACTIONS
-       ========================================================== */
-    window.toggleLike = async function(postId) {
-      if (!currentUser) { openAuthModal('signin'); return; }
-      const post = database.posts.find(p => p.id === postId);
-      if (!post) return;
-
-      let likes = post.likes || [];
-      const isLiked = likes.includes(currentUser.id);
-      
-      if (isLiked) likes = likes.filter(id => id !== currentUser.id);
-      else likes.push(currentUser.id);
-      
-      post.likes = likes;
-      renderFeed();
-
-      try {
-        await supabase.from('posts').update({ likes: likes }).eq('id', postId);
-      } catch (error) { console.error(error); }
-    };
-
-    window.flyToPost = function(postId) {
-      const post = database.posts.find(p => p.id === postId);
-      if (!post) return;
-      switchView('globe');
-      setTimeout(() => flyTo(post.lat, post.lng), 100);
-    };
-
-    window.switchView = function(viewName) {
-      document.querySelectorAll('.nav-icon').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('#feed-view, #globe-view').forEach(v => v.classList.remove('active'));
-      
-      document.getElementById(`nav-${viewName}`).classList.add('active');
-      document.getElementById(`${viewName}-view`).classList.add('active');
-      document.getElementById('page-title').textContent = viewName === 'feed' ? 'Stories' : 'Globe';
-
-      if (viewName === 'globe') {
-        const appContainer = document.getElementById('canvas-container');
-        if (renderer.domElement.parentElement !== appContainer) appContainer.appendChild(renderer.domElement);
-        controls.enabled = true;
-        controls.autoRotate = false;
-        onWindowResize();
-      } else {
-        const welcomeContainer = document.getElementById('welcome-canvas');
-        if (renderer.domElement.parentElement !== welcomeContainer) welcomeContainer.appendChild(renderer.domElement);
-        controls.enabled = false;
-        onWindowResize();
-      }
-    };
-
-    /* ==========================================================
-       MODALS
-       ========================================================== */
-    window.openAuthModal = function(mode) {
-      const isSignIn = mode === 'signin';
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            <h2 class="modal-title">${isSignIn ? 'Welcome back.' : 'Join the atlas.'}</h2>
-            
-            <button class="btn-google" onclick="handleGoogleLogin()">
-              <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-              Continue with Google
-            </button>
-            
-            <div class="divider">or use email</div>
-            
-            <div class="form-group">${!isSignIn ? `<label>Full Name</label><input type="text" id="auth-name" placeholder="e.g. Maya Lin" />` : ''}</div>
-            <div class="form-group"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com" /></div>
-            <div class="form-group"><label>Password</label><input type="password" id="auth-pass" placeholder="At least 6 characters" /></div>
-            
-            <div class="error-text" id="auth-error"></div>
-            <button class="btn btn-primary" style="width: 100%;" id="auth-submit" onclick="handleAuthSubmit('${mode}')">${isSignIn ? 'Sign in' : 'Create account'}</button>
-          </div>
-        </div>
-      `;
-    };
-
-    window.openComposeModal = function(lat = null, lng = null) {
-      if (!currentUser) { openAuthModal('signin'); return; }
-      const isPinLocked = lat !== null && lng !== null;
-      
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            <h2 class="modal-title">Pin a memory.</h2>
-            
-            <div class="form-group"><label>Location Name</label><input type="text" id="comp-location" placeholder="e.g. Kyoto, Japan" /></div>
-            <div class="form-group"><label>Story or Caption</label><textarea id="comp-caption" rows="3" placeholder="Share a tradition, a recipe, or a feeling."></textarea></div>
-            <div class="form-group"><label>Image URL (Optional)</label><input type="url" id="comp-image" placeholder="https://..." /></div>
-            <div class="form-group"><label>360 Street View URL (Optional)</label><input type="url" id="comp-street-view" placeholder="https://..." /></div>
-            
-            ${isPinLocked 
-              ? `<div style="font-size: 12px; color: var(--ink-light); margin-bottom: 16px; padding: 12px; background: var(--paper-dark); border-radius: 8px;">Coordinates locked: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>`
-              : `<div class="form-group"><label>Coordinates</label><div style="display: flex; gap: 12px;"><input type="text" id="comp-lat" placeholder="Latitude" /><input type="text" id="comp-lng" placeholder="Longitude" /></div></div>`
-            }
-            
-            <div class="error-text" id="comp-error"></div>
-            <button class="btn btn-primary" style="width: 100%;" id="comp-submit" onclick="handleComposeSubmit(${lat}, ${lng})">Publish story</button>
-          </div>
-        </div>
-      `;
-    };
-
-    window.openPinDetail = function(postId) {
-      const post = database.posts.find(p => p.id === postId);
-      if (!post) return;
-      const author = database.profiles[post.author_id] || { full_name: 'Unknown' };
-      const hasStreetView = post.street_view_url && post.street_view_url.trim().length > 0;
-
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 600px;">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            
-            <h2 class="modal-title">${escapeHTML(post.location_name)}</h2>
-            
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-              <div class="avatar">${getInitials(author.full_name)}</div>
-              <div>
-                <div style="font-weight: 600;">${escapeHTML(author.full_name)}</div>
-                <div style="font-size: 13px; color: var(--ink-light);">${timeAgo(post.created_at)}</div>
-              </div>
-            </div>
-
-            ${post.image_url ? `<img src="${escapeHTML(post.image_url)}" style="width: 100%; border-radius: 16px; margin-bottom: 24px;" />` : ''}
-            <p style="font-family: var(--hand); font-size: 28px; line-height: 1.4; margin-bottom: 24px;">${escapeHTML(post.caption)}</p>
-            
-            <div style="display: flex; gap: 12px;">
-              ${hasStreetView ? `<button class="btn btn-primary" onclick="enterStreetView('${escapeHTML(post.street_view_url)}')">Enter Street View</button>` : ''}
-              <button class="btn btn-outline" style="color: var(--ink); border-color: var(--border);" onclick="closeModal(); switchView('globe')">View on Globe</button>
-            </div>
-          </div>
-        </div>
-      `;
-    };
-
-    window.openProfile = function(userId) {
-      const userPosts = database.posts.filter(p => p.author_id === userId);
-      const author = database.profiles[userId] || { full_name: 'Unknown' };
-
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 600px;">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            <div style="text-align: center; margin-bottom: 32px;">
-              <div class="avatar" style="width: 80px; height: 80px; font-size: 28px; margin: 0 auto 16px;">${getInitials(author.full_name)}</div>
-              <h2 class="modal-title" style="margin-bottom: 8px;">${escapeHTML(author.full_name)}</h2>
-              <p style="color: var(--ink-light);">${userPosts.length} stories shared</p>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              ${userPosts.map(p => `
-                <div style="background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer;" onclick="closeModal(); openPinDetail('${p.id}')">
-                  <div style="font-family: var(--hand); font-size: 20px; margin-bottom: 4px;">${escapeHTML(p.location_name)}</div>
-                  <div style="font-size: 13px; color: var(--ink-light); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHTML(p.caption)}</div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-    };
-
-    window.enterStreetView = function(imageUrl) {
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" id="street-view-modal" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="sv-header">
-              <div class="sv-title">Street View</div>
-              <button class="btn btn-outline" style="padding: 8px 16px; color: var(--ink); border-color: var(--border);" onclick="closeModal()">Close</button>
-            </div>
-            <div id="panorama-container"></div>
-          </div>
-        </div>
-      `;
-      setTimeout(() => {
-        panoramaViewer = pannellum.viewer('panorama-container', { type: 'equirectangular', panorama: imageUrl, autoLoad: true, compass: true, showControls: false });
-      }, 100);
-    };
-
-    window.closeModal = function(e) {
-      if (e && e.target !== e.currentTarget) return;
-      if (panoramaViewer) { panoramaViewer.destroy(); panoramaViewer = null; }
-      document.getElementById('modal-container').innerHTML = '';
-    };
-
-    /* ==========================================================
-       AUTH & COMPOSE HANDLERS
-       ========================================================== */
-    window.handleGoogleLogin = async function() {
-      try {
-        /* 
-           THIS IS THE FIX: 
-           We use REDIRECT_URL instead of window.location.origin 
-           to guarantee the port is preserved.
-        */
-        const { error } = await supabase.auth.signInWithOAuth({ 
-          provider: 'google', 
-          options: { redirectTo: REDIRECT_URL } 
-        });
-        if (error) throw error;
-      } catch (err) { showToast(err.message); }
-    };
-
-    window.handleAuthSubmit = async function(mode) {
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-pass').value;
-      const errorEl = document.getElementById('auth-error');
-      const btn = document.getElementById('auth-submit');
-
-      if (!email || !password) { errorEl.textContent = 'Please fill in all fields.'; return; }
-
-      const originalText = btn.innerHTML;
-      btn.innerHTML = 'Please wait...'; btn.disabled = true; errorEl.textContent = '';
-
-      try {
-        if (mode === 'signin') {
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          closeModal(); showToast('Welcome back.');
-        } else {
-          const name = document.getElementById('auth-name').value.trim();
-          if (!name) throw new Error('Please enter your name.');
-          const { data, error } = await supabase.auth.signUp({ email, password });
-          if (error) throw error;
-          if (data.user) await supabase.from('profiles').insert({ id: data.user.id, full_name: name });
-          closeModal(); showToast('Welcome to the atlas.');
-        }
-        await fetchData();
-      } catch (err) {
-        errorEl.textContent = err.message;
-      } finally {
-        btn.innerHTML = originalText; btn.disabled = false;
-      }
-    };
-
-    window.handleComposeSubmit = async function(lockedLat, lockedLng) {
-      const location = document.getElementById('comp-location').value.trim();
-      const caption = document.getElementById('comp-caption').value.trim();
-      const imageUrl = document.getElementById('comp-image').value.trim();
-      const streetViewUrl = document.getElementById('comp-street-view').value.trim();
-      const errorEl = document.getElementById('comp-error');
-      const btn = document.getElementById('comp-submit');
-
-      let lat = lockedLat; let lng = lockedLng;
-      if (lat === null || lng === null) {
-        lat = parseFloat(document.getElementById('comp-lat').value);
-        lng = parseFloat(document.getElementById('comp-lng').value);
-      }
-
-      if (!location || !caption) { errorEl.textContent = 'Location and caption are required.'; return; }
-      if (isNaN(lat) || isNaN(lng)) { errorEl.textContent = 'Please provide valid coordinates.'; return; }
-
-      const originalText = btn.innerHTML;
-      btn.innerHTML = 'Publishing...'; btn.disabled = true; errorEl.textContent = '';
-
-      try {
-        const { error } = await supabase.from('posts').insert({
-          author_id: currentUser.id,
-          location_name: location,
-          caption: caption,
-          image_url: imageUrl || null,
-          street_view_url: streetViewUrl || null,
-          lat: lat,
-          lng: lng,
-          likes: []
-        });
-
-        if (error) throw error;
-        closeModal(); showToast('Story published.');
-        await fetchData(); switchView('globe');
-      } catch (err) {
-        errorEl.textContent = err.message;
-      } finally {
-        btn.innerHTML = originalText; btn.disabled = false;
-      }
-    };
-
-    /* ==========================================================
-       INITIALIZATION
-       ========================================================== */
-    window.addEventListener('DOMContentLoaded', () => {
-      initGlobe();
-      setTimeout(() => { document.getElementById('loader').classList.add('hidden'); }, 1500);
+      halo.position.copy(pos.clone().multiplyScalar(1.003));
+      halo.userData.postId = p.id;
+      pinsGroup.add(halo);
     });
+  }
+  refreshPins();
 
-    document.getElementById('btn-step-inside').addEventListener('click', () => {
-      document.getElementById('welcome-view').style.display = 'none';
-      document.getElementById('app-view').classList.add('active');
-      
-      const appContainer = document.getElementById('canvas-container');
-      appContainer.appendChild(renderer.domElement);
-      
-      initApp();
+  let dragging = false, lastX = 0, lastY = 0;
+  let targetRotY = 0, targetRotX = 0;
+  let autoRotate = true;
+  const clock = new THREE.Clock();
+
+  function onPointerDown(e){
+    dragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    renderer.domElement.setPointerCapture?.(e.pointerId);
+    mount.style.cursor = 'grabbing';
+  }
+  function onPointerMove(e){
+    if (!dragging) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    targetRotY += dx * 0.006;
+    targetRotX += dy * 0.006;
+    targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
+    mount.style.cursor = 'grabbing';
+  }
+  function onPointerUp(e){
+    dragging = false;
+    mount.style.cursor = 'grab';
+    if (e.pointerId != null) renderer.domElement.releasePointerCapture?.(e.pointerId);
+  }
+  mount.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+
+  let targetZ = 3.2;
+  mount.addEventListener('wheel', e => {
+    e.preventDefault();
+    targetZ = Math.max(1.8, Math.min(5.5, targetZ + e.deltaY * 0.0016));
+    camera.position.z = targetZ;
+  }, { passive: false });
+
+  const raycaster = new THREE.Raycaster();
+  let downAt = 0, downX = 0, downY = 0;
+  renderer.domElement.addEventListener('pointerdown', e => { downAt = Date.now(); downX = e.clientX; downY = e.clientY; });
+  renderer.domElement.addEventListener('pointerup', e => {
+    const dt = Date.now() - downAt;
+    const dx = Math.abs(e.clientX - downX);
+    const dy = Math.abs(e.clientY - downY);
+    if (dt > 350 || dx > 6 || dy > 6) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObject(globeMesh);
+    if (!hits.length) return;
+    const point = hits[0].point.clone().normalize();
+    let best = null, bestDot = -Infinity;
+    state.posts.forEach(p => {
+      if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+      const v = latLngToVec3(p.lat, p.lng, 1).normalize();
+      const dot = v.dot(point);
+      if (dot > bestDot) { bestDot = dot; best = p; }
     });
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Culture Atlas</title>
-  <meta name="description" content="Share a piece of home. Explore the world's cultures through the eyes of the people who live them." />
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
-  
-  <style>
-    :root {
-      --paper: #FAF9F6;
-      --paper-dark: #F0EDE4;
-      --ink: #1A241A;
-      --ink-light: #5C6B5C;
-      --accent: #2D5A27;
-      --accent-light: #E8F0E6;
-      --border: #E5E0D5;
-      --card: #FFFFFF;
-      --shadow-sm: 0 4px 12px rgba(26, 36, 26, 0.05);
-      --shadow-md: 0 12px 32px rgba(26, 36, 26, 0.08);
-      --shadow-lg: 0 24px 64px rgba(26, 36, 26, 0.15);
-      --hand: 'Caveat', cursive;
-      --serif: 'Playfair Display', serif;
-      --sans: 'Plus Jakarta Sans', sans-serif;
-    }
+    if (best && bestDot > 0.85) showGlobeCard(best);
+  });
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --paper: #0F1710;
-        --paper-dark: #0A100A;
-        --ink: #E8F0E6;
-        --ink-light: #A3B8A3;
-        --accent: #5A9C50;
-        --accent-light: rgba(90, 156, 80, 0.15);
-        --border: #233323;
-        --card: #162116;
-        --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-        --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.4);
+  document.getElementById('globe-reset').addEventListener('click', () => {
+    targetRotY = 0; targetRotX = 0; targetZ = 3.2; camera.position.z = 3.2;
+    document.getElementById('globe-card-slot').innerHTML = '';
+  });
+  document.getElementById('globe-autorotate').addEventListener('click', e => {
+    autoRotate = !autoRotate;
+    e.currentTarget.classList.toggle('on', autoRotate);
+  });
+
+  function resize(){
+    const w = mount.clientWidth, h = mount.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+
+  const tick = () => {
+    requestAnimationFrame(tick);
+    if (autoRotate && !dragging) targetRotY += 0.0009;
+    globeMesh.rotation.y += (targetRotY - globeMesh.rotation.y) * 0.12;
+    globeMesh.rotation.x += (targetRotX - globeMesh.rotation.x) * 0.12;
+    pinsGroup.rotation.copy(globeMesh.rotation);
+    camera.position.z += (targetZ - camera.position.z) * 0.12;
+    const t = clock.getElapsedTime();
+    pinsGroup.children.forEach(c => {
+      if (c.material && c.material.opacity != null) {
+        c.material.opacity = 0.22 + 0.18 * Math.sin(t * 2 + c.position.x * 10);
       }
-    }
+    });
+    renderer.render(scene, camera);
+  };
+  tick();
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background-color: var(--paper); color: var(--ink); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow: hidden; height: 100vh; transition: background-color 0.3s ease, color 0.3s ease; }
-    button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; transition: all 0.2s ease; }
-    input, textarea { font-family: inherit; width: 100%; border: 1px solid var(--border); background: var(--card); padding: 14px 16px; border-radius: 12px; font-size: 15px; color: var(--ink); outline: none; transition: all 0.2s ease; }
-    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+  state.globe = { refreshPins, resize };
+}
 
-    #loader { position: fixed; inset: 0; background: var(--paper); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease; }
-    #loader.hidden { opacity: 0; pointer-events: none; }
-    .spinner { width: 40px; height: 40px; border: 3px solid var(--accent-light); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-text { font-family: var(--hand); font-size: 28px; color: var(--accent); }
-
-    #welcome-view { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; pointer-events: none; background: radial-gradient(circle at 70% 50%, #0a1626 0%, #04070d 100%); }
-    #welcome-canvas { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-    .welcome-overlay { position: absolute; inset: 0; z-index: 2; background: linear-gradient(90deg, rgba(4, 7, 13, 0.95) 0%, rgba(4, 7, 13, 0.7) 45%, transparent 80%); pointer-events: none; }
-    .welcome-content { position: relative; z-index: 3; padding: 0 10vw; max-width: 700px; pointer-events: auto; animation: fadeUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .welcome-kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: #88bbee; margin-bottom: 24px; display: block; }
-    .welcome-title { font-family: var(--serif); font-size: clamp(3.5rem, 7vw, 6rem); line-height: 1.05; color: #fff; margin-bottom: 24px; letter-spacing: -0.02em; }
-    .welcome-title em { font-style: italic; color: #88bbee; font-weight: 400; }
-    .welcome-desc { font-size: 18px; line-height: 1.7; color: rgba(255, 255, 255, 0.7); margin-bottom: 48px; max-width: 480px; font-weight: 300; }
-    .welcome-actions { display: flex; gap: 16px; flex-wrap: wrap; }
-
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 36px; border-radius: 100px; font-weight: 600; font-size: 15px; cursor: pointer; letter-spacing: 0.02em; }
-    .btn-primary { background: var(--accent); color: #fff; box-shadow: var(--shadow-md); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-    .btn-secondary { background: var(--card); color: var(--ink); border: 1px solid var(--border); }
-    .btn-secondary:hover { border-color: var(--ink); }
-    .btn-white { background: #fff; color: #04070d; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-    .btn-white:hover { transform: translateY(-2px); background: #e6f0fa; }
-    .btn-outline { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); }
-    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.4); }
-
-    #app-view { display: none; height: 100vh; width: 100vw; background: var(--paper); }
-    #app-view.active { display: flex; }
-
-    .sidebar { width: 80px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 32px; z-index: 40; transition: width 0.3s ease; }
-    .logo-mark { font-family: var(--hand); font-size: 32px; font-weight: 700; color: var(--ink); cursor: pointer; }
-    .nav-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--ink-light); }
-    .nav-icon:hover { background: var(--paper-dark); color: var(--ink); }
-    .nav-icon.active { background: var(--accent-light); color: var(--accent); }
-    .nav-icon svg { width: 24px; height: 24px; }
-    .sidebar-spacer { flex: 1; }
-    .user-avatar-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid var(--card); box-shadow: var(--shadow-sm); cursor: pointer; }
-
-    .main-content { flex: 1; overflow-y: auto; position: relative; }
-    .top-bar { height: 72px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: var(--paper); position: sticky; top: 0; z-index: 30; }
-    .page-title { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--ink); }
-    .search-box { width: 300px; position: relative; }
-    .search-box input { padding: 10px 16px 10px 40px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); }
-    .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-light); }
-
-    #feed-view { display: none; padding: 40px 20px 100px; }
-    #feed-view.active { display: block; }
-    .post-card { background: var(--card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; max-width: 560px; margin: 0 auto 32px; box-shadow: var(--shadow-sm); transition: transform 0.3s ease; }
-    .post-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-    .post-header { padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
-    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; cursor: pointer; }
-    .post-author { font-weight: 600; font-size: 15px; color: var(--ink); cursor: pointer; }
-    .post-author:hover { text-decoration: underline; }
-    .post-time { font-size: 13px; color: var(--ink-light); }
-    .post-location { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
-    .post-image { width: 100%; height: auto; display: block; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .post-placeholder { width: 100%; aspect-ratio: 4/3; background: var(--paper-dark); display: flex; align-items: center; justify-content: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .post-placeholder svg { width: 64px; height: 64px; stroke: var(--border); stroke-width: 1.5; }
-    .post-caption { padding: 24px; font-family: var(--hand); font-size: 26px; line-height: 1.4; color: var(--ink); }
-    .post-footer { padding: 0 24px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .like-btn { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink-light); font-size: 14px; }
-    .like-btn:hover { color: var(--accent); }
-    .like-btn.liked { color: #d9534f; }
-    .like-btn.liked svg { fill: #d9534f; stroke: #d9534f; }
-    .link-btn { font-size: 14px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 6px; }
-    .link-btn:hover { text-decoration: underline; }
-
-    #globe-view { display: none; height: 100%; position: relative; background: #000; }
-    #globe-view.active { display: block; }
-    #canvas-container { width: 100%; height: 100%; }
-    .globe-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 32px; }
-    .globe-instructions { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; align-self: center; border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: auto; }
-    .globe-controls { align-self: flex-end; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
-    .globe-btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.9); color: var(--ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); font-size: 20px; }
-    .globe-btn:hover { background: #fff; transform: scale(1.05); }
-
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
-    .modal-box { background: var(--paper); border-radius: 32px; width: 100%; max-width: 480px; padding: 48px; box-shadow: var(--shadow-lg); position: relative; transform: translateY(20px); transition: transform 0.3s ease; max-height: 90vh; overflow-y: auto; }
-    .modal-backdrop.active .modal-box { transform: translateY(0); }
-    .modal-close { position: absolute; top: 24px; right: 24px; width: 32px; height: 32px; border-radius: 50%; background: var(--paper-dark); display: flex; align-items: center; justify-content: center; color: var(--ink-light); }
-    .modal-close:hover { background: var(--border); color: var(--ink); }
-    .modal-title { font-family: var(--serif); font-size: 42px; line-height: 1.1; margin-bottom: 32px; color: var(--ink); }
-    
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); margin-bottom: 8px; }
-    .error-text { color: #c45a4d; font-size: 14px; font-weight: 500; margin-bottom: 16px; min-height: 20px; }
-    .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: 100px; font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 24px; }
-    .btn-google:hover { background: var(--paper-dark); }
-    .divider { display: flex; align-items: center; text-align: center; color: var(--ink-light); font-size: 13px; font-weight: 600; margin: 24px 0; }
-    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
-    .divider::before { margin-right: 16px; } .divider::after { margin-left: 16px; }
-
-    #street-view-modal .modal-box { max-width: 900px; padding: 24px; height: 80vh; display: flex; flex-direction: column; }
-    #panorama-container { flex: 1; width: 100%; border-radius: 16px; overflow: hidden; background: #000; margin-bottom: 16px; }
-    .sv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .sv-title { font-family: var(--serif); font-size: 24px; color: var(--ink); }
-
-    .toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-    .toast { background: var(--ink); color: var(--paper); padding: 14px 28px; border-radius: 100px; font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease both; }
-    @keyframes toastIn { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-    @media (max-width: 768px) {
-      .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0 20px env(safe-area-inset-bottom); border-right: none; border-top: 1px solid var(--border); }
-      .logo-mark, .sidebar-spacer, .user-avatar-btn { display: none; }
-      .nav-icon { width: 56px; height: 56px; }
-      .top-bar { padding: 0 20px; }
-      .search-box { display: none; }
-      .main-content { padding-bottom: 70px; }
-      .modal-box { padding: 32px 24px; }
-      #welcome-view { padding: 0 6vw; text-align: center; }
-      .welcome-content { display: flex; flex-direction: column; align-items: center; }
-      .globe-overlay { padding: 20px 20px 90px; }
-      #street-view-modal .modal-box { height: 90vh; padding: 16px; }
-    }
-  </style>
-</head>
-<body>
-
-  <div id="loader">
-    <div class="spinner"></div>
-    <div class="loader-text">Gathering the world...</div>
-  </div>
-
-  <div id="welcome-view">
-    <div id="welcome-canvas"></div>
-    <div class="welcome-overlay"></div>
-    <div class="welcome-content">
-      <span class="welcome-kicker">Global Atlas</span>
-      <h1 class="welcome-title">Explore the world<br>through <em>culture.</em></h1>
-      <p class="welcome-desc">
-        A living atlas of traditions, languages, and stories. Pin a memory, share a recipe, or simply wander through the places that make us human.
-      </p>
-      <div class="welcome-actions">
-        <button class="btn btn-white" id="btn-step-inside">Step Inside <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
-        <button class="btn btn-outline" onclick="openAuthModal('signin')">Sign in</button>
+function showGlobeCard(p){
+  const slot = document.getElementById('globe-card-slot');
+  const author = { name: p.authorName, photoURL: p.authorPhoto || '' };
+  slot.innerHTML = `
+    <div class="globe-card">
+      <button class="gc-close" id="gc-close"><svg class="i"><use href="#i-close"/></svg></button>
+      <div class="gc-top">
+        ${avatarHTML(author, 'sm')}
+        <div><div class="gc-name">${esc(p.culture)}</div><div class="gc-place">${esc(p.place)}${p.country ? ', ' + esc(p.country) : ''}</div></div>
+      </div>
+      <div class="gc-cap">${esc(p.caption)}</div>
+      <div class="gc-actions">
+        <button class="gc-btn primary" id="gc-open">Read the story</button>
+        ${p.lat != null ? `<a class="gc-btn" href="https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=6/${p.lat}/${p.lng}" target="_blank" rel="noopener">Open map</a>` : ''}
       </div>
     </div>
-  </div>
+  `;
+  document.getElementById('gc-close').addEventListener('click', () => slot.innerHTML = '');
+  document.getElementById('gc-open').addEventListener('click', () => {
+    state.expandedComments.add(p.id);
+    loadComments(p.id);
+    setView('feed');
+    setTimeout(() => {
+      const el = document.querySelector(`[data-post="${CSS.escape(p.id)}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+  });
+}
 
-  <div id="app-view">
-    <aside class="sidebar">
-      <div class="logo-mark" onclick="switchView('feed')">A</div>
-      <button class="nav-icon active" id="nav-feed" onclick="switchView('feed')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-      </button>
-      <button class="nav-icon" id="nav-globe" onclick="switchView('globe')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-      </button>
-      <div class="sidebar-spacer"></div>
-      <div id="sidebar-auth"></div>
-    </aside>
+/* ============================================================
+   COMPOSE
+   ============================================================ */
+let composeImageBlob = null;
 
-    <main class="main-content">
-      <header class="top-bar">
-        <div class="page-title" id="page-title">Stories</div>
-        <div class="search-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="search-input" placeholder="Search places or people..." oninput="handleSearch(this.value)">
-        </div>
-      </header>
+function openCompose(){
+  $('#compose').hidden = false;
+  setTimeout(() => $('#ci-culture').focus(), 50);
+}
+function closeCompose(){
+  $('#compose').hidden = true;
+  composeImageBlob = null;
+  $('#ci-preview').hidden = true;
+  $('#ci-preview').innerHTML = '';
+  $('#compose-form').reset();
+}
+$('#btn-compose').addEventListener('click', openCompose);
+$('#compose-x').addEventListener('click', closeCompose);
+$('#compose').addEventListener('click', e => { if (e.target.id === 'compose') closeCompose(); });
 
-      <div id="feed-view" class="active">
-        <div id="feed-container"></div>
-      </div>
+$('#ci-image').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) { composeImageBlob = null; $('#ci-preview').hidden = true; return; }
+  try {
+    composeImageBlob = await compressImage(f);
+    const url = URL.createObjectURL(composeImageBlob);
+    $('#ci-preview').hidden = false;
+    $('#ci-preview').innerHTML = `<img src="${url}" alt="Preview">`;
+  } catch (err) {
+    console.error(err);
+    toast('That image could not be read. Try another.');
+  }
+});
 
-      <div id="globe-view">
-        <div id="canvas-container"></div>
-        <div class="globe-overlay">
-          <div class="globe-instructions">Drag to spin. Click anywhere to pin a location.</div>
-          <div class="globe-controls">
-            <button class="globe-btn" onclick="zoomGlobe(0.8)">+</button>
-            <button class="globe-btn" onclick="zoomGlobe(1.25)">−</button>
-            <button class="globe-btn" onclick="resetGlobe()">⌂</button>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <div id="modal-container"></div>
-  <div id="toast-container" class="toast-container"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-  <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
-  </script>
-
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    const SUPABASE_URL = 'https://ydbhtlgxefapcjqurlpm.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_nVROPvNoluHIBrxwMcajSw_yNgnuNrM';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    /* ==========================================================
-       FIX FOR THE OAUTH REDIRECT BUG
-       We explicitly set the redirect URL to your local port.
-       When you deploy to Vercel, change this to your Vercel URL.
-       ========================================================== */
-    const REDIRECT_URL = 'http://localhost:3000';
-
-    let currentUser = null;
-    let database = { profiles: {}, posts: [] };
-    let currentSearch = "";
-    let isLoading = true;
-
-    let scene, camera, renderer, controls, earthMesh;
-    let globePins = [];
-    let raycaster = new THREE.Raycaster();
-    let mouse = new THREE.Vector2();
-    let panoramaViewer = null;
-
-    function escapeHTML(str) {
-      return String(str || '').replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-      });
-    }
-
-    function showToast(message) {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
-      container.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
-    }
-
-    function timeAgo(dateString) {
-      if (!dateString) return 'Just now';
-      const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
-      if (seconds < 60) return 'Just now';
-      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-      return `${Math.floor(seconds / 86400)}d ago`;
-    }
-
-    function getInitials(name) {
-      if (!name) return '?';
-      return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-    }
-
-    /* ==========================================================
-       THREE.JS GLOBE
-       ========================================================== */
-    function initGlobe() {
-      const welcomeContainer = document.getElementById('welcome-canvas');
-      const appContainer = document.getElementById('canvas-container');
-
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 0, 280);
-
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setClearColor(0x000000, 0);
-      welcomeContainer.appendChild(renderer.domElement);
-
-      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-      dirLight.position.set(5, 3, 5);
-      scene.add(dirLight);
-
-      const geometry = new THREE.SphereGeometry(100, 64, 64);
-      const textureLoader = new THREE.TextureLoader();
-      const earthMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
-      const earthBump = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg');
-      
-      const material = new THREE.MeshPhongMaterial({
-        map: earthMap,
-        bumpMap: earthBump,
-        bumpScale: 0.5,
-        specular: new THREE.Color('grey'),
-        shininess: 10
-      });
-
-      earthMesh = new THREE.Mesh(geometry, material);
-      earthMesh.rotation.y = -Math.PI / 2;
-      scene.add(earthMesh);
-
-      const atmGeo = new THREE.SphereGeometry(103, 64, 64);
-      const atmMat = new THREE.MeshBasicMaterial({ color: 0x88bbee, transparent: true, opacity: 0.1, side: THREE.BackSide });
-      scene.add(new THREE.Mesh(atmGeo, atmMat));
-
-      controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.rotateSpeed = 0.5;
-      controls.minDistance = 150;
-      controls.maxDistance = 500;
-      controls.enablePan = false;
-      controls.enabled = false;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.5;
-
-      renderer.domElement.addEventListener('pointerdown', onPointerDown);
-      renderer.domElement.addEventListener('pointerup', onPointerUp);
-      window.addEventListener('resize', onWindowResize);
-
-      function animate() {
-        requestAnimationFrame(animate);
-        if (!controls.enabled) {
-          earthMesh.rotation.y += 0.002;
-        } else {
-          controls.update();
-        }
-        renderer.render(scene, camera);
+function compressImage(file, maxSize = 1400, quality = 0.82){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (Math.max(w, h) > maxSize) {
+        const s = maxSize / Math.max(w, h);
+        w = Math.round(w * s); h = Math.round(h * s);
       }
-      animate();
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => b ? resolve(b) : reject(new Error('No blob')), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Load failed')); };
+    img.src = url;
+  });
+}
+
+$('#btn-geo').addEventListener('click', () => {
+  if (!navigator.geolocation) { toast('This browser has no location support.'); return; }
+  toast('Looking for your place in the world...');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      $('#ci-lat').value = pos.coords.latitude.toFixed(4);
+      $('#ci-lng').value = pos.coords.longitude.toFixed(4);
+      toast('Location added');
+    },
+    err => {
+      console.warn(err);
+      toast('Could not read your location. Check browser permissions.');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+});
+
+$('#compose-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('#ci-submit');
+  btn.disabled = true;
+  const prev = btn.textContent;
+  btn.textContent = 'Sharing...';
+  try {
+    let imageUrl = '';
+    if (composeImageBlob) {
+      const path = `posts/${state.me.uid}/${Date.now()}.jpg`;
+      const sref = sRef(storage, path);
+      await uploadBytes(sref, composeImageBlob, { contentType: 'image/jpeg' });
+      imageUrl = await getDownloadURL(sref);
     }
-
-    function onWindowResize() {
-      const isAppView = document.getElementById('app-view').classList.contains('active');
-      const container = isAppView ? document.getElementById('canvas-container') : document.getElementById('welcome-canvas');
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+    const culture = $('#ci-culture').value.trim();
+    const place = $('#ci-place').value.trim();
+    const caption = $('#ci-caption').value.trim();
+    const latRaw = $('#ci-lat').value.trim();
+    const lngRaw = $('#ci-lng').value.trim();
+    const tags = $('#ci-tags').value.split(',').map(s => s.trim().toLowerCase().replace(/^#/, '')).filter(Boolean).slice(0, 8);
+    const docData = {
+      authorId: state.me.uid,
+      authorName: state.me.name,
+      authorHandle: state.me.handle,
+      authorPhoto: state.me.photoURL || '',
+      culture, place,
+      country: state.me.country || '',
+      caption,
+      tags,
+      imageUrl,
+      likedBy: [],
+      createdAt: serverTimestamp()
+    };
+    if (latRaw && lngRaw && !isNaN(parseFloat(latRaw)) && !isNaN(parseFloat(lngRaw))) {
+      docData.lat = parseFloat(latRaw);
+      docData.lng = parseFloat(lngRaw);
     }
+    await addDoc(collection(db, 'posts'), docData);
+    closeCompose();
+    toast('Your story is live');
+    setView('feed');
+  } catch (err) {
+    console.error(err);
+    let msg = 'Could not share. ';
+    if (err.code === 'storage/unauthorized') msg += 'Check Storage rules.';
+    else if (err.code === 'permission-denied') msg += 'Check Firestore rules.';
+    else msg += (err.message || '');
+    toast(msg);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = prev;
+  }
+});
 
-    let pointerDownPos = null;
-    function onPointerDown(e) { pointerDownPos = { x: e.clientX, y: e.clientY }; }
-    function onPointerUp(e) {
-      if (!pointerDownPos) return;
-      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-      pointerDownPos = null;
-      if (dist < 5) handleGlobeClick(e);
-    }
-
-    function handleGlobeClick(e) {
-      if (!controls.enabled) return;
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
-
-      const pinIntersects = raycaster.intersectObjects(globePins);
-      if (pinIntersects.length > 0) {
-        openPinDetail(pinIntersects[0].object.userData.post.id);
-        return;
-      }
-
-      if (!currentUser) { showToast('Please sign in to pin a location.'); openAuthModal('signin'); return; }
-      
-      const earthIntersects = raycaster.intersectObject(earthMesh);
-      if (earthIntersects.length > 0) {
-        const point = earthIntersects[0].point;
-        const radius = 100;
-        const lat = 90 - (Math.acos(point.y / radius) * 180 / Math.PI);
-        let lng = (Math.atan2(point.z, -point.x) * 180 / Math.PI) - 180;
-        if (lng < -180) lng += 360;
-        if (lng > 180) lng -= 360;
-        openComposeModal(lat, lng);
-      }
-    }
-
-    function addPinToGlobe(post) {
-      if (post.lat == null || post.lng == null) return;
-      const radius = 100;
-      const phi = (90 - post.lat) * Math.PI / 180;
-      const theta = (post.lng + 180) * Math.PI / 180;
-      const x = -(radius * Math.sin(phi) * Math.cos(theta));
-      const y = (radius * Math.cos(phi));
-      const z = (radius * Math.sin(phi) * Math.sin(theta));
-
-      const pinGeo = new THREE.SphereGeometry(1.5, 8, 8);
-      const pinMat = new THREE.MeshBasicMaterial({ color: 0x2D5A27 });
-      const pinMesh = new THREE.Mesh(pinGeo, pinMat);
-      pinMesh.position.set(x, y, z);
-      pinMesh.userData = { post: post };
-      earthMesh.add(pinMesh);
-      globePins.push(pinMesh);
-    }
-
-    function clearPins() {
-      globePins.forEach(p => {
-        earthMesh.remove(p);
-        p.geometry.dispose();
-        p.material.dispose();
-      });
-      globePins = [];
-    }
-
-    window.zoomGlobe = function(factor) {
-      if (!camera || !controls.enabled) return;
-      const dist = camera.position.length() * factor;
-      camera.position.copy(camera.position.clone().normalize().multiplyScalar(Math.max(150, Math.min(500, dist))));
-      controls.update();
-    };
-
-    window.resetGlobe = function() {
-      if (!camera || !controls.enabled) return;
-      camera.position.set(0, 0, 280);
-      controls.update();
-    };
-
-    function flyTo(lat, lng) {
-      if (!camera) return;
-      const phi = (90 - lat) * Math.PI / 180;
-      const theta = (lng + 180) * Math.PI / 180;
-      const radius = 200;
-      
-      const targetPos = new THREE.Vector3(
-        -(radius * Math.sin(phi) * Math.cos(theta)),
-        (radius * Math.cos(phi)),
-        (radius * Math.sin(phi) * Math.sin(theta))
-      );
-
-      const startPos = camera.position.clone();
-      const startTime = performance.now();
-      controls.autoRotate = false;
-
-      function step() {
-        const t = Math.min(1, (performance.now() - startTime) / 1200);
-        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        camera.position.lerpVectors(startPos, targetPos, eased);
-        camera.lookAt(0, 0, 0);
-        if (t < 1) requestAnimationFrame(step);
-      }
-      step();
-    }
-
-    /* ==========================================================
-       SUPABASE LOGIC
-       ========================================================== */
-    async function initApp() {
-      const { data: { session } } = await supabase.auth.getSession();
-      currentUser = session ? session.user : null;
-      renderSidebarAuth();
-      
-      isLoading = true;
-      renderFeed();
-      await fetchData();
-      isLoading = false;
-      renderFeed();
-
-      supabase.auth.onAuthStateChange((_event, session) => {
-        currentUser = session ? session.user : null;
-        renderSidebarAuth();
-        fetchData();
-      });
-    }
-
-    async function fetchData() {
-      try {
-        const { data: profiles } = await supabase.from('profiles').select('*');
-        database.profiles = {};
-        if (profiles) profiles.forEach(p => database.profiles[p.id] = p);
-
-        const { data: posts } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
-        database.posts = posts || [];
-
-        clearPins();
-        database.posts.forEach(post => addPinToGlobe(post));
-
-      } catch (error) { 
-        console.error(error); 
-        showToast('Failed to load data.');
-      }
-    }
-
-    /* ==========================================================
-       UI RENDERING
-       ========================================================== */
-    function renderSidebarAuth() {
-      const container = document.getElementById('sidebar-auth');
-      if (currentUser) {
-        const profile = database.profiles[currentUser.id];
-        const name = profile ? profile.full_name : 'User';
-        container.innerHTML = `<div class="user-avatar-btn" onclick="openComposeModal()" title="Pin a memory">${getInitials(name)}</div>`;
-      } else {
-        container.innerHTML = `<button class="btn btn-primary" style="padding: 12px 24px; font-size: 14px;" onclick="openAuthModal('signin')">Sign in</button>`;
-      }
-    }
-
-    let searchTimeout;
-    window.handleSearch = function(val) {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        currentSearch = val.toLowerCase();
-        renderFeed();
-      }, 300);
-    };
-
-    function renderFeed() {
-      const container = document.getElementById('feed-container');
-      
-      if (isLoading) {
-        container.innerHTML = `<div style="text-align: center; padding: 60px; color: var(--ink-light);"><div class="spinner" style="margin: 0 auto 20px;"></div><p>Gathering stories...</p></div>`;
-        return;
-      }
-
-      let filtered = database.posts;
-      if (currentSearch) {
-        filtered = filtered.filter(p => 
-          (p.location_name || '').toLowerCase().includes(currentSearch) ||
-          (database.profiles[p.author_id]?.full_name || '').toLowerCase().includes(currentSearch) ||
-          (p.caption || '').toLowerCase().includes(currentSearch)
-        );
-      }
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 80px 20px; color: var(--ink-light);"><h2 style="font-family: var(--hand); font-size: 36px; color: var(--ink); margin-bottom: 12px;">It is quiet here</h2><p>Be the first to share a piece of your culture.</p></div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(post => {
-        const author = database.profiles[post.author_id] || { full_name: 'Unknown' };
-        const isLiked = currentUser && post.likes && post.likes.includes(currentUser.id);
-        const likeCount = post.likes ? post.likes.length : 0;
-
-        return `
-          <article class="post-card">
-            <header class="post-header">
-              <div class="avatar" onclick="openProfile('${post.author_id}')">${getInitials(author.full_name)}</div>
-              <div>
-                <div class="post-author" onclick="openProfile('${post.author_id}')">${escapeHTML(author.full_name)}</div>
-                <div class="post-time">${timeAgo(post.created_at)}</div>
-              </div>
-              <div class="post-location">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                ${escapeHTML(post.location_name)}
-              </div>
-            </header>
-            
-            ${post.image_url ? `<img src="${escapeHTML(post.image_url)}" class="post-image" onerror="this.style.display='none'" />` : `<div class="post-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></circle><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>`}
-            
-            <div class="post-caption">${escapeHTML(post.caption)}</div>
-            
-            <footer class="post-footer">
-              <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                ${likeCount}
-              </button>
-              <button class="link-btn" onclick="flyToPost('${post.id}')">
-                View on globe <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </button>
-            </footer>
-          </article>
-        `;
-      }).join('');
-    }
-
-    /* ==========================================================
-       ACTIONS
-       ========================================================== */
-    window.toggleLike = async function(postId) {
-      if (!currentUser) { openAuthModal('signin'); return; }
-      const post = database.posts.find(p => p.id === postId);
-      if (!post) return;
-
-      let likes = post.likes || [];
-      const isLiked = likes.includes(currentUser.id);
-      
-      if (isLiked) likes = likes.filter(id => id !== currentUser.id);
-      else likes.push(currentUser.id);
-      
-      post.likes = likes;
-      renderFeed();
-
-      try {
-        await supabase.from('posts').update({ likes: likes }).eq('id', postId);
-      } catch (error) { console.error(error); }
-    };
-
-    window.flyToPost = function(postId) {
-      const post = database.posts.find(p => p.id === postId);
-      if (!post) return;
-      switchView('globe');
-      setTimeout(() => flyTo(post.lat, post.lng), 100);
-    };
-
-    window.switchView = function(viewName) {
-      document.querySelectorAll('.nav-icon').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('#feed-view, #globe-view').forEach(v => v.classList.remove('active'));
-      
-      document.getElementById(`nav-${viewName}`).classList.add('active');
-      document.getElementById(`${viewName}-view`).classList.add('active');
-      document.getElementById('page-title').textContent = viewName === 'feed' ? 'Stories' : 'Globe';
-
-      if (viewName === 'globe') {
-        const appContainer = document.getElementById('canvas-container');
-        if (renderer.domElement.parentElement !== appContainer) appContainer.appendChild(renderer.domElement);
-        controls.enabled = true;
-        controls.autoRotate = false;
-        onWindowResize();
-      } else {
-        const welcomeContainer = document.getElementById('welcome-canvas');
-        if (renderer.domElement.parentElement !== welcomeContainer) welcomeContainer.appendChild(renderer.domElement);
-        controls.enabled = false;
-        onWindowResize();
-      }
-    };
-
-    /* ==========================================================
-       MODALS
-       ========================================================== */
-    window.openAuthModal = function(mode) {
-      const isSignIn = mode === 'signin';
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            <h2 class="modal-title">${isSignIn ? 'Welcome back.' : 'Join the atlas.'}</h2>
-            
-            <button class="btn-google" onclick="handleGoogleLogin()">
-              <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-              Continue with Google
-            </button>
-            
-            <div class="divider">or use email</div>
-            
-            <div class="form-group">${!isSignIn ? `<label>Full Name</label><input type="text" id="auth-name" placeholder="e.g. Maya Lin" />` : ''}</div>
-            <div class="form-group"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com" /></div>
-            <div class="form-group"><label>Password</label><input type="password" id="auth-pass" placeholder="At least 6 characters" /></div>
-            
-            <div class="error-text" id="auth-error"></div>
-            <button class="btn btn-primary" style="width: 100%;" id="auth-submit" onclick="handleAuthSubmit('${mode}')">${isSignIn ? 'Sign in' : 'Create account'}</button>
-          </div>
-        </div>
-      `;
-    };
-
-    window.openComposeModal = function(lat = null, lng = null) {
-      if (!currentUser) { openAuthModal('signin'); return; }
-      const isPinLocked = lat !== null && lng !== null;
-      
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            <h2 class="modal-title">Pin a memory.</h2>
-            
-            <div class="form-group"><label>Location Name</label><input type="text" id="comp-location" placeholder="e.g. Kyoto, Japan" /></div>
-            <div class="form-group"><label>Story or Caption</label><textarea id="comp-caption" rows="3" placeholder="Share a tradition, a recipe, or a feeling."></textarea></div>
-            <div class="form-group"><label>Image URL (Optional)</label><input type="url" id="comp-image" placeholder="https://..." /></div>
-            <div class="form-group"><label>360 Street View URL (Optional)</label><input type="url" id="comp-street-view" placeholder="https://..." /></div>
-            
-            ${isPinLocked 
-              ? `<div style="font-size: 12px; color: var(--ink-light); margin-bottom: 16px; padding: 12px; background: var(--paper-dark); border-radius: 8px;">Coordinates locked: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>`
-              : `<div class="form-group"><label>Coordinates</label><div style="display: flex; gap: 12px;"><input type="text" id="comp-lat" placeholder="Latitude" /><input type="text" id="comp-lng" placeholder="Longitude" /></div></div>`
-            }
-            
-            <div class="error-text" id="comp-error"></div>
-            <button class="btn btn-primary" style="width: 100%;" id="comp-submit" onclick="handleComposeSubmit(${lat}, ${lng})">Publish story</button>
-          </div>
-        </div>
-      `;
-    };
-
-    window.openPinDetail = function(postId) {
-      const post = database.posts.find(p => p.id === postId);
-      if (!post) return;
-      const author = database.profiles[post.author_id] || { full_name: 'Unknown' };
-      const hasStreetView = post.street_view_url && post.street_view_url.trim().length > 0;
-
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 600px;">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            
-            <h2 class="modal-title">${escapeHTML(post.location_name)}</h2>
-            
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-              <div class="avatar">${getInitials(author.full_name)}</div>
-              <div>
-                <div style="font-weight: 600;">${escapeHTML(author.full_name)}</div>
-                <div style="font-size: 13px; color: var(--ink-light);">${timeAgo(post.created_at)}</div>
-              </div>
-            </div>
-
-            ${post.image_url ? `<img src="${escapeHTML(post.image_url)}" style="width: 100%; border-radius: 16px; margin-bottom: 24px;" />` : ''}
-            <p style="font-family: var(--hand); font-size: 28px; line-height: 1.4; margin-bottom: 24px;">${escapeHTML(post.caption)}</p>
-            
-            <div style="display: flex; gap: 12px;">
-              ${hasStreetView ? `<button class="btn btn-primary" onclick="enterStreetView('${escapeHTML(post.street_view_url)}')">Enter Street View</button>` : ''}
-              <button class="btn btn-outline" style="color: var(--ink); border-color: var(--border);" onclick="closeModal(); switchView('globe')">View on Globe</button>
-            </div>
-          </div>
-        </div>
-      `;
-    };
-
-    window.openProfile = function(userId) {
-      const userPosts = database.posts.filter(p => p.author_id === userId);
-      const author = database.profiles[userId] || { full_name: 'Unknown' };
-
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 600px;">
-            <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            <div style="text-align: center; margin-bottom: 32px;">
-              <div class="avatar" style="width: 80px; height: 80px; font-size: 28px; margin: 0 auto 16px;">${getInitials(author.full_name)}</div>
-              <h2 class="modal-title" style="margin-bottom: 8px;">${escapeHTML(author.full_name)}</h2>
-              <p style="color: var(--ink-light);">${userPosts.length} stories shared</p>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              ${userPosts.map(p => `
-                <div style="background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer;" onclick="closeModal(); openPinDetail('${p.id}')">
-                  <div style="font-family: var(--hand); font-size: 20px; margin-bottom: 4px;">${escapeHTML(p.location_name)}</div>
-                  <div style="font-size: 13px; color: var(--ink-light); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHTML(p.caption)}</div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-    };
-
-    window.enterStreetView = function(imageUrl) {
-      document.getElementById('modal-container').innerHTML = `
-        <div class="modal-backdrop active" id="street-view-modal" onclick="closeModal(event)">
-          <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="sv-header">
-              <div class="sv-title">Street View</div>
-              <button class="btn btn-outline" style="padding: 8px 16px; color: var(--ink); border-color: var(--border);" onclick="closeModal()">Close</button>
-            </div>
-            <div id="panorama-container"></div>
-          </div>
-        </div>
-      `;
-      setTimeout(() => {
-        panoramaViewer = pannellum.viewer('panorama-container', { type: 'equirectangular', panorama: imageUrl, autoLoad: true, compass: true, showControls: false });
-      }, 100);
-    };
-
-    window.closeModal = function(e) {
-      if (e && e.target !== e.currentTarget) return;
-      if (panoramaViewer) { panoramaViewer.destroy(); panoramaViewer = null; }
-      document.getElementById('modal-container').innerHTML = '';
-    };
-
-    /* ==========================================================
-       AUTH & COMPOSE HANDLERS
-       ========================================================== */
-    window.handleGoogleLogin = async function() {
-      try {
-        /* 
-           THIS IS THE FIX: 
-           We use REDIRECT_URL instead of window.location.origin 
-           to guarantee the port is preserved.
-        */
-        const { error } = await supabase.auth.signInWithOAuth({ 
-          provider: 'google', 
-          options: { redirectTo: REDIRECT_URL } 
-        });
-        if (error) throw error;
-      } catch (err) { showToast(err.message); }
-    };
-
-    window.handleAuthSubmit = async function(mode) {
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-pass').value;
-      const errorEl = document.getElementById('auth-error');
-      const btn = document.getElementById('auth-submit');
-
-      if (!email || !password) { errorEl.textContent = 'Please fill in all fields.'; return; }
-
-      const originalText = btn.innerHTML;
-      btn.innerHTML = 'Please wait...'; btn.disabled = true; errorEl.textContent = '';
-
-      try {
-        if (mode === 'signin') {
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          closeModal(); showToast('Welcome back.');
-        } else {
-          const name = document.getElementById('auth-name').value.trim();
-          if (!name) throw new Error('Please enter your name.');
-          const { data, error } = await supabase.auth.signUp({ email, password });
-          if (error) throw error;
-          if (data.user) await supabase.from('profiles').insert({ id: data.user.id, full_name: name });
-          closeModal(); showToast('Welcome to the atlas.');
-        }
-        await fetchData();
-      } catch (err) {
-        errorEl.textContent = err.message;
-      } finally {
-        btn.innerHTML = originalText; btn.disabled = false;
-      }
-    };
-
-    window.handleComposeSubmit = async function(lockedLat, lockedLng) {
-      const location = document.getElementById('comp-location').value.trim();
-      const caption = document.getElementById('comp-caption').value.trim();
-      const imageUrl = document.getElementById('comp-image').value.trim();
-      const streetViewUrl = document.getElementById('comp-street-view').value.trim();
-      const errorEl = document.getElementById('comp-error');
-      const btn = document.getElementById('comp-submit');
-
-      let lat = lockedLat; let lng = lockedLng;
-      if (lat === null || lng === null) {
-        lat = parseFloat(document.getElementById('comp-lat').value);
-        lng = parseFloat(document.getElementById('comp-lng').value);
-      }
-
-      if (!location || !caption) { errorEl.textContent = 'Location and caption are required.'; return; }
-      if (isNaN(lat) || isNaN(lng)) { errorEl.textContent = 'Please provide valid coordinates.'; return; }
-
-      const originalText = btn.innerHTML;
-      btn.innerHTML = 'Publishing...'; btn.disabled = true; errorEl.textContent = '';
-
-      try {
-        const { error } = await supabase.from('posts').insert({
-          author_id: currentUser.id,
-          location_name: location,
-          caption: caption,
-          image_url: imageUrl || null,
-          street_view_url: streetViewUrl || null,
-          lat: lat,
-          lng: lng,
-          likes: []
-        });
-
-        if (error) throw error;
-        closeModal(); showToast('Story published.');
-        await fetchData(); switchView('globe');
-      } catch (err) {
-        errorEl.textContent = err.message;
-      } finally {
-        btn.innerHTML = originalText; btn.disabled = false;
-      }
-    };
-
-    /* ==========================================================
-       INITIALIZATION
-       ========================================================== */
-    window.addEventListener('DOMContentLoaded', () => {
-      initGlobe();
-      setTimeout(() => { document.getElementById('loader').classList.add('hidden'); }, 1500);
-    });
-
-    document.getElementById('btn-step-inside').addEventListener('click', () => {
-      document.getElementById('welcome-view').style.display = 'none';
-      document.getElementById('app-view').classList.add('active');
-      
-      const appContainer = document.getElementById('canvas-container');
-      appContainer.appendChild(renderer.domElement);
-      
-      initApp();
-    });
-  </script>
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!$('#compose').hidden) closeCompose();
+    const gc = document.getElementById('globe-card-slot');
+    if (gc) gc.innerHTML = '';
+  }
+});
+</script>
 </body>
 </html>
