@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/__/auth/(.*)",
+      "destination": "https://culture-of-humanity-6463f.firebaseapp.com/__/auth/$1"
+    }
+  ]
+}
